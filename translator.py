@@ -159,3 +159,39 @@ class Translator:
     @staticmethod
     def __translate_sub():
         pass
+
+    @staticmethod
+    def __translate_neg():
+        pass
+
+    @staticmethod
+    def __translate_eq():
+        pass
+
+    @staticmethod
+    def __translate_gt():
+        pass
+
+    @staticmethod
+    def __translate_lt():
+        pass
+
+    @staticmethod
+    def __translate_and():
+        pass
+
+    @staticmethod
+    def __translate_or():
+        pass
+
+    @staticmethod
+    def __translate_not():
+        pass
+
+    @staticmethod
+    def __translate_push():
+        pass
+
+    @staticmethod
+    def __translate_pop():
+        pass
