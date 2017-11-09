@@ -33,6 +33,13 @@ GO_TO_REGISTER_M = "A=M" + END_OF_LINE_MARK
 GETTING_REGISTER_VALUE = "D=M" + END_OF_LINE_MARK
 REDUCE_MEMORY = "M=M-1" + END_OF_LINE_MARK
 INCREMENT_MEMORY = "M=M+1" + END_OF_LINE_MARK
+UPDATE_MEMORY_TO_D = "M=D" + END_OF_LINE_MARK
+ADDING_D_TO_MEMORY = "M=M+D" + END_OF_LINE_MARK
+SUBTRACTION_D_FROM_MEMORY = "M=M-D" + END_OF_LINE_MARK
+NEGATION_MEMORY = "M=-M" + END_OF_LINE_MARK
+NOT_MEMORY = "M=!M" + END_OF_LINE_MARK
+OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
+AND_D_MEMORY = "M=M&D" + END_OF_LINE_MARK
 LABELS_TRANSLATOR = {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT"}
 
 
@@ -165,26 +172,47 @@ class Translator:
 
     # NAND7 ################
     @staticmethod
-    def reduce_stack():
+    def __reduce_stack():
         """
         :return: the asm code of reducing the stack
         """
         return STACK + REDUCE_MEMORY
 
     @staticmethod
-    def increment_stack():
+    def __increment_stack():
         """
         :return: the asm code of reducing the stack
         """
         return STACK + INCREMENT_MEMORY
 
     @staticmethod
+    def __go_to_stack_register():
+        """
+        :return: the asm code fot getting the stack register into A
+        """
+        return STACK + GO_TO_REGISTER_M
+
+    @staticmethod
+    def __get_top_stack_into_D():
+        """
+        :return: the asm code for getting the value in the top of the stack into the D-register
+        """
+        return Translator.__go_to_stack_register() + GETTING_REGISTER_VALUE
+
+    @staticmethod
+    def __get_two_top_stack_value():
+        """
+        :return: the asm code for inserting the most top value in the stack into the A-register and the second
+        top value into the memory M
+        """
+        return Translator.__get_top_stack_into_D() + Translator.__reduce_stack() + GO_TO_REGISTER_M
+
+    @staticmethod
     def __translate_add():
         """
         :return: The asm code for the adding operation
         """
-        trans = STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.reduce_stack() + GO_TO_REGISTER_M + \
-                "M=D+M" + END_OF_LINE_MARK
+        trans = Translator.__get_two_top_stack_value() + ADDING_D_TO_MEMORY
         return trans
 
     @staticmethod
@@ -192,8 +220,7 @@ class Translator:
         """
         :return: The asm code for the subtraction operation
         """
-        trans = STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.reduce_stack() + GO_TO_REGISTER_M + \
-                "M=M-D" + END_OF_LINE_MARK
+        trans = Translator.__get_two_top_stack_value() + SUBTRACTION_D_FROM_MEMORY
         return trans
 
     @staticmethod
@@ -201,7 +228,7 @@ class Translator:
         """
         :return: The asm code for the negation operation
         """
-        trans = STACK + GO_TO_REGISTER_M + "M=-M" + END_OF_LINE_MARK
+        trans = Translator.__go_to_stack_register() + NEGATION_MEMORY
         return trans
 
     @staticmethod
@@ -230,21 +257,24 @@ class Translator:
         """
         :return: The asm code for the and operation
         """
-        pass
+        trans = Translator.__get_two_top_stack_value() + AND_D_MEMORY
+        return trans
 
     @staticmethod
     def __translate_or():
         """
         :return: The asm code for the or operation
         """
-        pass
+        trans = Translator.__get_two_top_stack_value() + OR_D_MEMORY
+        return trans
 
     @staticmethod
     def __translate_not():
         """
         :return: The asm code for the not operation
         """
-        pass
+        trans = Translator.__go_to_stack_register() + NOT_MEMORY
+        return trans
 
     @staticmethod
     def __translate_push():
