@@ -24,6 +24,15 @@ COMP_TRANSLATOR = {"0": "101010", "1": "111111", "-1": "111010", "D": "001100", 
                    "A-1": "110010", "D+A": "000010", "D-A": "010011", "A-D": "000111", "D&A": "000000",
                    "D|A": "010101", "D<<": "110000", "D>>": "010000", "A<<": "100000", "A>>": "000000"}
 
+####################
+# FROM HERE NAND 7 #
+####################
+END_OF_LINE_MARK = "\n"
+STACK = "@SP" + END_OF_LINE_MARK
+GO_TO_REGISTER_M = "A=M" + END_OF_LINE_MARK
+GETTING_REGISTER_VALUE = "D=M" + END_OF_LINE_MARK
+REDUCE_MEMORY = "M=M-1" + END_OF_LINE_MARK
+INCREMENT_MEMORY = "M=M+1" + END_OF_LINE_MARK
 LABELS_TRANSLATOR = {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT"}
 
 
@@ -154,12 +163,28 @@ class Translator:
 
         return BINARY_ONE
 
+    # NAND7 ################
+    @staticmethod
+    def reduce_stack():
+        """
+        :return: the asm code of reducing the stack
+        """
+        return STACK + REDUCE_MEMORY
+
+    @staticmethod
+    def increment_stack():
+        """
+        :return: the asm code of reducing the stack
+        """
+        return STACK + INCREMENT_MEMORY
+
     @staticmethod
     def __translate_add():
         """
         :return: The asm code for the adding operation
         """
-        trans = "@SP\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=D+M"
+        trans = STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.reduce_stack() + GO_TO_REGISTER_M + \
+                "M=D+M" + END_OF_LINE_MARK
         return trans
 
     @staticmethod
@@ -167,7 +192,8 @@ class Translator:
         """
         :return: The asm code for the subtraction operation
         """
-        trans = "@SP\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D"
+        trans = STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.reduce_stack() + GO_TO_REGISTER_M + \
+                "M=M-D" + END_OF_LINE_MARK
         return trans
 
     @staticmethod
@@ -175,37 +201,61 @@ class Translator:
         """
         :return: The asm code for the negation operation
         """
-        trans = "@SP\nA=M\nM=-M"
+        trans = STACK + GO_TO_REGISTER_M + "M=-M" + END_OF_LINE_MARK
         return trans
 
     @staticmethod
     def __translate_eq():
+        """
+        :return: The asm code for the equal operation
+        """
         pass
 
     @staticmethod
     def __translate_gt():
+        """
+        :return: The asm code for the grater than operation
+        """
         pass
 
     @staticmethod
     def __translate_lt():
+        """
+        :return: The asm code for the lower than operation
+        """
         pass
 
     @staticmethod
     def __translate_and():
+        """
+        :return: The asm code for the and operation
+        """
         pass
 
     @staticmethod
     def __translate_or():
+        """
+        :return: The asm code for the or operation
+        """
         pass
 
     @staticmethod
     def __translate_not():
+        """
+        :return: The asm code for the not operation
+        """
         pass
 
     @staticmethod
     def __translate_push():
+        """
+        :return: The asm code for the push operation
+        """
         pass
 
     @staticmethod
     def __translate_pop():
+        """
+        :return: The asm code for the pop operation
+        """
         pass
