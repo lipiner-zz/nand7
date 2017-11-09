@@ -156,15 +156,27 @@ class Translator:
 
     @staticmethod
     def __translate_add():
-        pass
+        """
+        :return: The asm code for the adding operation
+        """
+        trans = "@SP\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=D+M"
+        return trans
 
     @staticmethod
     def __translate_sub():
-        pass
+        """
+        :return: The asm code for the subtraction operation
+        """
+        trans = "@SP\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D"
+        return trans
 
     @staticmethod
     def __translate_neg():
-        pass
+        """
+        :return: The asm code for the negation operation
+        """
+        trans = "@SP\nA=M\nM=-M"
+        return trans
 
     @staticmethod
     def __translate_eq():
