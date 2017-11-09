@@ -151,3 +151,11 @@ class Translator:
             return BINARY_ZERO
 
         return BINARY_ONE
+
+    @staticmethod
+    def __translate_add():
+        pass
+
+    @staticmethod
+    def __translate_sub():
+        pass
