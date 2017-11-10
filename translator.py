@@ -200,7 +200,7 @@ class Translator:
     #     return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE)
 
     @staticmethod
-    def __operate_on_two_top_stack_value(operation):
+    def __operate_on_two_top_stack_values(operation):
         """
         :return: the asm code for inserting the most top value in the stack into the A-register and the second
         top value into the memory M
@@ -213,7 +213,7 @@ class Translator:
         """
         :return: The asm code for the adding operation
         """
-        trans = Translator.__operate_on_two_top_stack_value(ADDING_D_TO_MEMORY)
+        trans = Translator.__operate_on_two_top_stack_values(ADDING_D_TO_MEMORY)
         return trans
 
     @staticmethod
@@ -221,7 +221,7 @@ class Translator:
         """
         :return: The asm code for the subtraction operation
         """
-        trans = Translator.__operate_on_two_top_stack_value(SUBTRACTION_D_FROM_MEMORY)
+        trans = Translator.__operate_on_two_top_stack_values(SUBTRACTION_D_FROM_MEMORY)
         return trans
 
     @staticmethod
@@ -258,7 +258,7 @@ class Translator:
         """
         :return: The asm code for the and operation
         """
-        trans = Translator.__operate_on_two_top_stack_value(AND_D_MEMORY)
+        trans = Translator.__operate_on_two_top_stack_values(AND_D_MEMORY)
         return trans
 
     @staticmethod
@@ -266,7 +266,7 @@ class Translator:
         """
         :return: The asm code for the or operation
         """
-        trans = Translator.__operate_on_two_top_stack_value(OR_D_MEMORY)
+        trans = Translator.__operate_on_two_top_stack_values(OR_D_MEMORY)
         return trans
 
     @staticmethod
