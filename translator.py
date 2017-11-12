@@ -98,13 +98,6 @@ class Translator:
         """
         return Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + operation
 
-    # @staticmethod
-    # def __get_top_stack_into_D():
-    #     """
-    #     :return: the asm code for getting the value in the top of the stack into the D-register
-    #     """
-    #     return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE)
-
     @staticmethod
     def __operate_on_two_top_stack_values(operation):
         """
