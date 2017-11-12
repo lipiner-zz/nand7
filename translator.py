@@ -1,4 +1,4 @@
-from Parser import Parser
+import Parser
 
 #############
 # constants #
