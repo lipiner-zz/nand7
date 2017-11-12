@@ -1,3 +1,5 @@
+import Parser
+
 #############
 # constants #
 #############
@@ -24,6 +26,7 @@ TEMP_SEGMENT = "temp"
 CONSTANT_SEGMENT = "constant"
 A_PREFIX = "@"
 TEMP_MEMORY = "5"
+ADDR_STORE_REGISTER = "RAM13"
 
 
 class Translator:
@@ -145,51 +148,95 @@ class Translator:
     @staticmethod
     def __translate_push_pop(parser):
         """
+        :param parser: the Parser object that is set to the command
         :return: The asm code for the push/pop operation
         """
         segment = parser.get_segment()
         address = parser.get_address()
+        command = parser.get_type()
 
-        if segment in LABELS_TRANSLATOR.keys():
-            return Translator.__translate_local_push_pop(address, LABELS_TRANSLATOR[segment])
+        if segment in LABELS_TRANSLATOR:
+            return Translator.__translate_local_push_pop(address, LABELS_TRANSLATOR[segment], command)
         elif segment == CONSTANT_SEGMENT:
             return Translator.__translate_constant_push_pop(address)
         elif segment == TEMP_SEGMENT:
-            return Translator.__translate_temp_push_pop(address)
+            return Translator.__translate_temp_push_pop(address, command)
         elif segment == STATIC_SEGMENT:
-            return Translator.__translate_static_push_pop(parser)
+            return Translator.__translate_static_push_pop(parser, address, command)
         else:
-            return Translator.__translate_pointer_push_pop(parser)
+            return Translator.__translate_pointer_push_pop(parser, command)
 
     @staticmethod
-    def __translate_local_push_pop(address, segment_key):
-        return Translator.__get_local_address(segment_key, address) + \
-               Translator.__put_address_content_in_stack() + Translator.__increment_stack()
+    def __translate_local_push_pop(address, segment_key, command):
+        """
+        translates local-like push and pop commands (local, argument, this, that) to asm code
+        :param address: the address to access in the given segment
+        :param segment_key: the segment asm representation
+        :param command: the push/pop command
+        :return: the asm code for the push/pop local operation
+        """
+        # push local
+        if command == Parser.PUSH_COMMAND_TYPE:
+            return Translator.__get_local_address(segment_key, address) + \
+                   Translator.__put_address_content_in_stack() + Translator.__increment_stack()
+        # pop local
+        else:
+            return Translator.__get_local_address(segment_key, address) + Translator.__reduce_stack() + \
+                   Translator.__put_stack_content_in_address()
 
     @staticmethod
-    def __translate_temp_push_pop(address):
-        return Translator.__get_temp_address(address) + Translator.__put_address_content_in_stack() + \
-               Translator.__increment_stack()
+    def __translate_temp_push_pop(address, command):
+        """
+        translates temp push and pop commands to asm code
+        :param address: the address to access in the temp segment
+        :param command: the push/pop command
+        :return: the asm code for the push/pop temp operation
+        """
+        # push static
+        if command == Parser.PUSH_COMMAND_TYPE:
+            return Translator.__get_temp_address(address) + Translator.__put_address_content_in_stack() + \
+                   Translator.__increment_stack()
+        # pop static
+        else:
+            return Translator.__get_temp_address(address) + Translator.__reduce_stack() + \
+                   Translator.__put_stack_content_in_address()
 
     @staticmethod
     def __translate_constant_push_pop(address):
+        """
+        :param address: the address to access in the constant segment
+        :return: the asm code for the push constant operation
+        """
         return Translator.__put_address_in_stack(address) + Translator.__increment_stack()
 
     @staticmethod
-    def __translate_static_push_pop(parser):
-        pass
+    def __translate_static_push_pop(parser, address, command):
+        """
+        translates static push and pop commands to asm code
+        :param parser: the Parser object that is set to the command
+        :param address: the address to access in the static segment
+        :param command: the push/pop command
+        :return: the asm code for the push/pop static operation
+        """
+        file_name = parser.get_file_name()
+        # push static
+        if command == Parser.PUSH_COMMAND_TYPE:
+            return Translator.__put_static_in_stack(file_name, address) + Translator.__increment_stack()
+        # pop static
+        else:
+            return Translator.__reduce_stack() + Translator.__put_stack_content_in_static(file_name, address)
 
     @staticmethod
-    def __translate_pointer_push_pop(parser):
+    def __translate_pointer_push_pop(parser, command):
         pass
 
     @staticmethod
     def __get_local_address(segment, address):
         """
-        putting addr + i in D register
-        :param segment:
-        :param address:
-        :return:
+        D = segment + i
+        :param segment: the given segment code (representing local, argument, this or that segments)
+        :param address: the address to access in the given segment
+        :return: the command for putting (segment base address + i) in D register
         """
         return Translator.__get_A_instruction(segment) + GETTING_REGISTER_VALUE + \
                Translator.__get_A_instruction(address) + ADD_A_TO_D
@@ -197,9 +244,9 @@ class Translator:
     @staticmethod
     def __get_temp_address(address):
         """
-        putting 5 + i in D register
-        :param address:
-        :return:
+        D = 5 + i
+        :param address: the address to access in the given segment
+        :return: the command for putting (5 + i) in D register
         """
         return Translator.__get_A_instruction(TEMP_MEMORY) + GETTING_ADDRESS_VALUE + \
                Translator.__get_A_instruction(address) + ADD_A_TO_D
@@ -208,20 +255,57 @@ class Translator:
     def __put_address_content_in_stack():
         """
         *SP = *addr
-        :return:
+        :return: the command for putting the content of the address in the stack
         """
         return GO_TO_REGISTER_D + GETTING_REGISTER_VALUE + STACK + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+
+    @staticmethod
+    def __put_stack_content_in_address():
+        """
+        *addr = *SP
+        :return: the command for putting the content of the stack in the address
+        """
+        return Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D + STACK + \
+               GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.__get_A_instruction(ADDR_STORE_REGISTER) + \
+               GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+
+    @staticmethod
+    def __put_static_in_stack(file_name, address):
+        """
+        *SP = *filename.i
+        :param file_name: the name of the vm file
+        :param address: the address to access in the static segment
+        :return: the command for putting the content of the static variable in the stack
+        """
+        return Translator.__get_A_instruction(file_name + "." + address) + \
+               GETTING_REGISTER_VALUE + STACK + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+
+    @staticmethod
+    def __put_stack_content_in_static(file_name, address):
+        """
+        *filename.i=*SP
+        :param file_name: the name of the vm file
+        :param address: the address to access in the static segment
+        :return: the command for putting the content of the stack in the static variable
+        """
+        return STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + \
+               Translator.__get_A_instruction(file_name + "." + address) + UPDATE_MEMORY_TO_D
 
     @staticmethod
     def __get_A_instruction(address_code):
         """
         @address_code
-        :param address_code:
-        :return:
+        :param address_code: the address to access
+        :return: the A command for accessing the given address code
         """
         return A_PREFIX + address_code + END_OF_LINE_MARK
 
     @staticmethod
     def __put_address_in_stack(address):
+        """
+        *SP = address (for "push constant address" command)
+        :param address: the address to put in the stack
+        :return: the command for putting the given address in the stack
+        """
         return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE + STACK + \
                GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
