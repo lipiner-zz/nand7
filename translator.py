@@ -19,6 +19,7 @@ OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
 AND_D_MEMORY = "M=M&D" + END_OF_LINE_MARK
 ADD_A_TO_D = "D=D+A" + END_OF_LINE_MARK
 LABELS_TRANSLATOR = {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT"}
+POINTER_ADDRESS_TRANSLATOR = {"0": "THIS", "1": "THAT"}
 STACK = "SP"
 STATIC_SEGMENT = "static"
 POINTER_SEGMENT = "pointer"
@@ -35,8 +36,11 @@ class Translator:
     translate a line when given a Parser object that parsed the line
     """
 
-    @staticmethod
-    def translate(parser):
+    def __init__(self, parser):
+        self.__parser = parser
+        self.__label_counter = 0
+
+    def translate(self, parser):
         pass
 
     @staticmethod
@@ -145,26 +149,24 @@ class Translator:
         trans = Translator.__operate_on_top_stack_value(NOT_MEMORY)
         return trans
 
-    @staticmethod
-    def __translate_push_pop(parser):
+    def __translate_push_pop(self):
         """
-        :param parser: the Parser object that is set to the command
         :return: The asm code for the push/pop operation
         """
-        segment = parser.get_segment()
-        address = parser.get_address()
-        command = parser.get_type()
+        segment = self.__parser.get_segment()
+        address = self.__parser.get_address()
+        command = self.__parser.get_type()
 
-        if segment in LABELS_TRANSLATOR:
+        if segment in LABELS_TRANSLATOR:  # local-like segments (local, argument, this, that)
             return Translator.__translate_local_push_pop(address, LABELS_TRANSLATOR[segment], command)
         elif segment == CONSTANT_SEGMENT:
             return Translator.__translate_constant_push_pop(address)
         elif segment == TEMP_SEGMENT:
             return Translator.__translate_temp_push_pop(address, command)
         elif segment == STATIC_SEGMENT:
-            return Translator.__translate_static_push_pop(parser, address, command)
-        else:
-            return Translator.__translate_pointer_push_pop(parser, command)
+            return self.__translate_static_push_pop(address, command)
+        else:  # pointer segment
+            return Translator.__translate_pointer_push_pop(address, command)
 
     @staticmethod
     def __translate_local_push_pop(address, segment_key, command):
@@ -209,16 +211,14 @@ class Translator:
         """
         return Translator.__put_address_in_stack(address) + Translator.__increment_stack()
 
-    @staticmethod
-    def __translate_static_push_pop(parser, address, command):
+    def __translate_static_push_pop(self, address, command):
         """
         translates static push and pop commands to asm code
-        :param parser: the Parser object that is set to the command
         :param address: the address to access in the static segment
         :param command: the push/pop command
         :return: the asm code for the push/pop static operation
         """
-        file_name = parser.get_file_name()
+        file_name = self.__parser.get_file_name()
         # push static
         if command == Parser.PUSH_COMMAND_TYPE:
             return Translator.__put_static_in_stack(file_name, address) + Translator.__increment_stack()
@@ -227,8 +227,22 @@ class Translator:
             return Translator.__reduce_stack() + Translator.__put_stack_content_in_static(file_name, address)
 
     @staticmethod
-    def __translate_pointer_push_pop(parser, command):
-        pass
+    def __translate_pointer_push_pop(address, command):
+        """
+        translates pointer push and pop commands to asm code
+        :param address: the address to access in the pointer segment: 0 for this, 1 for that
+        :param command: the push/pop command
+        :return: the asm code for the push/pop pointer operation
+        """
+        # push pointer
+        if command == Parser.PUSH_COMMAND_TYPE:
+            return Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + GETTING_REGISTER_VALUE + \
+                   Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
+        # pop pointer
+        else:
+            return Translator.__reduce_stack() + Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D) + \
+                   Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + UPDATE_MEMORY_TO_D
+
 
     @staticmethod
     def __get_local_address(segment, address):
@@ -307,5 +321,5 @@ class Translator:
         :param address: the address to put in the stack
         :return: the command for putting the given address in the stack
         """
-        return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE +\
+        return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE + \
                Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
