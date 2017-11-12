@@ -2,6 +2,7 @@
 # imports #
 ###########
 import re
+import os
 
 #############
 # constants #
@@ -24,7 +25,7 @@ class Parser:
     """
     A Parser object to parse the command to its parts.
     """
-    def __init__(self):
+    def __init__(self, file_name):
         """
         Creates new object of a parser.
         """
@@ -34,6 +35,10 @@ class Parser:
         self.__segment = None
         self.__dest_address = None
         self.__arithmetic_operation = None
+        file_name_pos = file_name.find(os.path.sep)  # gets the position of the file name only without path
+        if file_name_pos >= 0:  # checks if the file name is a full path or not
+            file_name = file_name[file_name_pos:]  # cuts the full path into the file name only
+        self.__file_name = file_name
 
     def set_command(self, command):
         """
@@ -115,3 +120,9 @@ class Parser:
         :return: the address in the memory in the command in case of the command is a A-address. Otherwise, returns None
         """
         return self.__dest_address
+
+    def get_file_name(self):
+        """
+        :return: the VM file name
+        """
+        return self.__file_name
