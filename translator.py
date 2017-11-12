@@ -4,7 +4,6 @@ import Parser
 # constants #
 #############
 END_OF_LINE_MARK = "\n"
-STACK = "@SP" + END_OF_LINE_MARK
 GO_TO_REGISTER_M = "A=M" + END_OF_LINE_MARK
 GO_TO_REGISTER_D = "A=D" + END_OF_LINE_MARK
 GETTING_REGISTER_VALUE = "D=M" + END_OF_LINE_MARK
@@ -20,6 +19,7 @@ OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
 AND_D_MEMORY = "M=M&D" + END_OF_LINE_MARK
 ADD_A_TO_D = "D=D+A" + END_OF_LINE_MARK
 LABELS_TRANSLATOR = {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT"}
+STACK = "SP"
 STATIC_SEGMENT = "static"
 POINTER_SEGMENT = "pointer"
 TEMP_SEGMENT = "temp"
@@ -44,21 +44,21 @@ class Translator:
         """
         :return: the asm code of reducing the stack
         """
-        return STACK + REDUCE_MEMORY
+        return Translator.__get_A_instruction(STACK) + REDUCE_MEMORY
 
     @staticmethod
     def __increment_stack():
         """
         :return: the asm code of reducing the stack
         """
-        return STACK + INCREMENT_MEMORY
+        return Translator.__get_A_instruction(STACK) + INCREMENT_MEMORY
 
     @staticmethod
     def __operate_on_top_stack_value(operation):
         """
         :return: the asm code fot getting the stack register into A
         """
-        return STACK + GO_TO_REGISTER_M + operation
+        return Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + operation
 
     # @staticmethod
     # def __get_top_stack_into_D():
@@ -257,7 +257,7 @@ class Translator:
         *SP = *addr
         :return: the command for putting the content of the address in the stack
         """
-        return GO_TO_REGISTER_D + GETTING_REGISTER_VALUE + STACK + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        return GO_TO_REGISTER_D + GETTING_REGISTER_VALUE + Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
 
     @staticmethod
     def __put_stack_content_in_address():
@@ -265,9 +265,9 @@ class Translator:
         *addr = *SP
         :return: the command for putting the content of the stack in the address
         """
-        return Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D + STACK + \
-               GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + Translator.__get_A_instruction(ADDR_STORE_REGISTER) + \
-               GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        return Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D +\
+               Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) +\
+               Translator.__get_A_instruction(ADDR_STORE_REGISTER) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
 
     @staticmethod
     def __put_static_in_stack(file_name, address):
@@ -277,8 +277,8 @@ class Translator:
         :param address: the address to access in the static segment
         :return: the command for putting the content of the static variable in the stack
         """
-        return Translator.__get_A_instruction(file_name + "." + address) + \
-               GETTING_REGISTER_VALUE + STACK + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        return Translator.__get_A_instruction(file_name + "." + address) + GETTING_REGISTER_VALUE + \
+               Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
 
     @staticmethod
     def __put_stack_content_in_static(file_name, address):
@@ -288,7 +288,7 @@ class Translator:
         :param address: the address to access in the static segment
         :return: the command for putting the content of the stack in the static variable
         """
-        return STACK + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE + \
+        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
                Translator.__get_A_instruction(file_name + "." + address) + UPDATE_MEMORY_TO_D
 
     @staticmethod
@@ -307,5 +307,5 @@ class Translator:
         :param address: the address to put in the stack
         :return: the command for putting the given address in the stack
         """
-        return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE + STACK + \
-               GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE +\
+               Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
