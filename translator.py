@@ -54,10 +54,19 @@ class Translator:
     """
 
     def __init__(self, parser):
+        """
+
+        :param parser:
+        """
         self.__parser = parser
         self.__label_counter = 0
 
-    def translate(self, parser):
+    def translate(self):
+        """
+
+        :param parser:
+        :return:
+        """
         pass
 
     @staticmethod
