@@ -31,7 +31,7 @@ CONSTANT_SEGMENT = "constant"
 A_PREFIX = "@"
 TEMP_MEMORY = "5"
 ADDR_STORE_REGISTER = "R13"
-MY_TEMP_REGISTER = "R14"
+COMPARE_TEMP_REGISTER = "R14"
 JUMP_ON_D = "D;"
 REGULAR_MINUS_LABEL = "REGULAR_MINUS_L"
 TRUE_LABEL = "TRUE_L"
@@ -158,7 +158,7 @@ class Translator:
         :return: the comparison asm code
         """
         stack_value = Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE)
-        temp_register_address = Translator.__get_A_instruction(MY_TEMP_REGISTER)
+        temp_register_address = Translator.__get_A_instruction(COMPARE_TEMP_REGISTER)
         true_label_address = Translator.__get_A_instruction(TRUE_LABEL + str(self.__label_counter))
         false_label_address = Translator.__get_A_instruction(FALSE_LABEL + str(self.__label_counter))
         # gets the top stack value into a temp register
