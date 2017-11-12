@@ -6,7 +6,8 @@ import re
 #############
 # constants #
 #############
-PUSH_POP_COMMAND_TYPE = 'P'
+PUSH_COMMAND_TYPE = 'PU'
+POP_COMMAND_TYPE = 'PO'
 ARITHMETIC_COMMAND_TYPE = 'A'
 EMPTY_COMMAND_TYPE = 'N'
 PUSH_COMMAND_MARK = 'push'
@@ -65,8 +66,10 @@ class Parser:
         if len(self.__command) == 0:  # an empty command
             return EMPTY_COMMAND_TYPE
         # search for special symbol. If there aren't any then it is C-instruction
-        if PUSH_COMMAND_MARK in self.__command or POP_COMMAND_MARK in self.__command:
-            return PUSH_POP_COMMAND_TYPE
+        if PUSH_COMMAND_MARK in self.__command:
+            return PUSH_COMMAND_TYPE
+        if POP_COMMAND_MARK in self.__command:
+            return POP_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
 
     def get_type(self):
@@ -83,7 +86,7 @@ class Parser:
         command_parts = list(filter(lambda x: x != "", command_parts))  # removes empty parts resulted by extra spaces
         if self.get_type() == ARITHMETIC_COMMAND_TYPE:
             self.__arithmetic_operation = command_parts[ARITHMETIC_POS]
-        elif self.get_type() == PUSH_POP_COMMAND_TYPE:
+        elif self.get_type() == PUSH_COMMAND_TYPE:
             self.__inner_command = command_parts[COMMAND_POS]
             self.__segment = command_parts[SEGMENT_POS]
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
