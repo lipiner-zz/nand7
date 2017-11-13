@@ -31,7 +31,7 @@ class Parser:
         """
         self.__command = None
         self.__command_type = None
-        self.__inner_command = None  # push/pop command
+        self.__cleared_command = None
         self.__segment = None
         self.__dest_address = None
         self.__arithmetic_operation = None
@@ -49,7 +49,7 @@ class Parser:
         self.__command = command
         self.__clear()
         self.__command_type = self.__set_type()
-        self.__inner_command = None
+        self.__cleared_command = None
         self.__segment = None
         self.__dest_address = None
         self.__arithmetic_operation = None
@@ -61,19 +61,18 @@ class Parser:
         self.__command = self.__command.strip()  # removes white spaces from the beginning and the end
         comment_pos = self.__command.find(COMMENT_MARK)  # search for a comments chars "//"
         if comment_pos >= 0:
-            self.__command = self.__command[:comment_pos]  # removes any comment if there is any
-        print(self.__command)
+            self.__cleared_command = self.__command[:comment_pos]  # removes any comment if there is any
 
     def __set_type(self):
         """
         Sets the type of the command: A-instruction / C-instruction / empty line / label
         """
-        if len(self.__command) == 0:  # an empty command
+        if len(self.__cleared_command) == 0:  # an empty command
             return EMPTY_COMMAND_TYPE
         # search for special symbol. If there aren't any then it is C-instruction
-        if PUSH_COMMAND_MARK in self.__command:
+        if PUSH_COMMAND_MARK in self.__cleared_command:
             return PUSH_COMMAND_TYPE
-        if POP_COMMAND_MARK in self.__command:
+        if POP_COMMAND_MARK in self.__cleared_command:
             return POP_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
 
@@ -87,12 +86,11 @@ class Parser:
         """
         Parse the command into its parts and set the command / segment / dest address / arithmetic command
         """
-        command_parts = re.split(COMMANDS_SEPARATOR, self.__command)  # split the command based on white spaces
+        command_parts = re.split(COMMANDS_SEPARATOR, self.__cleared_command)  # split the command based on white spaces
         command_parts = list(filter(lambda x: x != "", command_parts))  # removes empty parts resulted by extra spaces
         if self.get_type() == ARITHMETIC_COMMAND_TYPE:
             self.__arithmetic_operation = command_parts[ARITHMETIC_POS]
-        elif self.get_type() == PUSH_COMMAND_TYPE:
-            self.__inner_command = command_parts[COMMAND_POS]
+        elif self.get_type() == PUSH_COMMAND_TYPE or self.get_type() == POP_COMMAND_TYPE:
             self.__segment = command_parts[SEGMENT_POS]
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
 
