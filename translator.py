@@ -92,25 +92,27 @@ class Translator:
         translate an arithmetic operation to asm
         :return: the asm command matching the arithmetic operation
         """
+        trans = Translator.__reduce_stack()
         operation = self.__parser.get_operation()
         if operation == ADD_OPERATION:
-            return Translator.__translate_add()
+            trans += Translator.__translate_add()
         elif operation == SUB_OPERATION:
-            return Translator.__translate_sub()
+            trans += Translator.__translate_sub()
         elif operation == NEGATION_OPERATION:
-            return Translator.__translate_neg()
+            trans += Translator.__translate_neg()
         elif operation == EQUAL_OPERATION:
-            return self.__translate_eq()
+            trans += self.__translate_eq()
         elif operation == GREATER_OPERATION:
-            return self.__translate_gt()
+            trans += self.__translate_gt()
         elif operation == LOWER_OPERATION:
-            return self.__translate_lt()
+            trans += self.__translate_lt()
         elif operation == AND_OPERATION:
-            return Translator.__translate_and()
+            trans += Translator.__translate_and()
         elif operation == OR_OPERATION:
-            return Translator.__translate_or()
+            trans += Translator.__translate_or()
         else:  # not operation
-            return Translator.__translate_not()
+            trans += Translator.__translate_not()
+        return trans
 
     @staticmethod
     def __reduce_stack():
@@ -139,7 +141,7 @@ class Translator:
         :param operation: the operation on the top stack value (M)
         :return: the asm code fot getting the stack register into A
         """
-        return Translator.__reduce_stack() + GO_TO_REGISTER_M + operation
+        return Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + operation
 
     @staticmethod
     def __operate_on_two_top_stack_values(operation):
