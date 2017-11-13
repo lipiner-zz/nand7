@@ -19,6 +19,7 @@ ARITHMETIC_POS = 0
 COMMAND_POS = 0
 SEGMENT_POS = 1
 DEST_ADDRESS_POS = 2
+FILE_NAME_POSITION = -1
 
 
 class Parser:
@@ -35,10 +36,8 @@ class Parser:
         self.__segment = None
         self.__dest_address = None
         self.__arithmetic_operation = None
-        file_name_pos = file_name.find(os.path.sep)  # gets the position of the file name only without path
-        if file_name_pos >= 0:  # checks if the file name is a full path or not
-            file_name = file_name[file_name_pos:]  # cuts the full path into the file name only
-        self.__file_name = file_name
+        file_name_dirs = file_name.split(os.path.sep)  # split the path to its directories and the file name
+        self.__file_name = file_name_dirs[FILE_NAME_POSITION]  # gets the file name only
 
     def set_command(self, command):
         """
