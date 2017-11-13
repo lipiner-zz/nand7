@@ -112,7 +112,7 @@ class Translator:
             trans += Translator.__translate_or()
         else:  # not operation
             trans += Translator.__translate_not()
-        return trans
+        return trans + Translator.__increment_stack()
 
     @staticmethod
     def __reduce_stack():
