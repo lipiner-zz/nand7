@@ -106,7 +106,7 @@ class Parser:
         """
         :return: the comp part of the command in case of the command is a C-address. Otherwise, returns None
         """
-        return self.__inner_command
+        return self.__command
 
     def get_segment(self):
         """
