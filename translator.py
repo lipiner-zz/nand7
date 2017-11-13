@@ -77,9 +77,9 @@ class Translator:
         translates the command of the inner parser to asm code
         :return: the asm code matching the parser operation
         """
-        line_type = self.__parser.get_type
+        line_type = self.__parser.get_type()
         # returns a comment of the full command for the understandability of the asm file
-        line_comment = COMMENT_SIGN + self.__parser.get_command() + END_OF_LINE_MARK
+        line_comment = END_OF_LINE_MARK + COMMENT_SIGN + self.__parser.get_command()
         if line_type == Parser.ARITHMETIC_COMMAND_TYPE:
             return line_comment + self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
@@ -92,7 +92,7 @@ class Translator:
         translate an arithmetic operation to asm
         :return: the asm command matching the arithmetic operation
         """
-        operation = self.__parser.get_operation
+        operation = self.__parser.get_operation()
         if operation == ADD_OPERATION:
             return Translator.__translate_add()
         elif operation == SUB_OPERATION:
