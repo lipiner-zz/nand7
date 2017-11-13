@@ -57,7 +57,8 @@ class Parser:
         """
         Reformat the command - removes comments and any white spaces
         """
-        self.__cleared_command = self.__command.strip()  # removes white spaces from the beginning and the end
+        self.__command = self.__command.strip()  # removes white spaces from the beginning and the end
+        self.__cleared_command = self.__command
         comment_pos = self.__cleared_command.find(COMMENT_MARK)  # search for a comments chars "//"
         if comment_pos >= 0:
             self.__cleared_command = self.__cleared_command[:comment_pos]  # removes any comment if there is any

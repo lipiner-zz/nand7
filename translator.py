@@ -5,6 +5,7 @@ import Parser
 #############
 END_OF_LINE_MARK = "\n"
 GO_TO_REGISTER_M = "A=M" + END_OF_LINE_MARK
+GO_TO_PREVIOUS_REGISTER_M = "AM=M-1" + END_OF_LINE_MARK
 GO_TO_REGISTER_D = "A=D" + END_OF_LINE_MARK
 GETTING_REGISTER_VALUE = "D=M" + END_OF_LINE_MARK
 GETTING_ADDRESS_VALUE = "D=A" + END_OF_LINE_MARK
@@ -79,7 +80,7 @@ class Translator:
         """
         line_type = self.__parser.get_type()
         # returns a comment of the full command for the understandability of the asm file
-        line_comment = END_OF_LINE_MARK + COMMENT_SIGN + self.__parser.get_command()
+        line_comment = COMMENT_SIGN + self.__parser.get_command() + END_OF_LINE_MARK
         if line_type == Parser.ARITHMETIC_COMMAND_TYPE:
             return line_comment + self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
@@ -92,26 +93,25 @@ class Translator:
         translate an arithmetic operation to asm
         :return: the asm command matching the arithmetic operation
         """
-        trans = Translator.__reduce_stack()
         operation = self.__parser.get_operation()
         if operation == ADD_OPERATION:
-            trans += Translator.__translate_add()
+            trans = Translator.__translate_add()
         elif operation == SUB_OPERATION:
-            trans += Translator.__translate_sub()
+            trans = Translator.__translate_sub()
         elif operation == NEGATION_OPERATION:
-            trans += Translator.__translate_neg()
+            trans = Translator.__translate_neg()
         elif operation == EQUAL_OPERATION:
-            trans += self.__translate_eq()
+            trans = self.__translate_eq()
         elif operation == GREATER_OPERATION:
-            trans += self.__translate_gt()
+            trans = self.__translate_gt()
         elif operation == LOWER_OPERATION:
-            trans += self.__translate_lt()
+            trans = self.__translate_lt()
         elif operation == AND_OPERATION:
-            trans += Translator.__translate_and()
+            trans = Translator.__translate_and()
         elif operation == OR_OPERATION:
-            trans += Translator.__translate_or()
+            trans = Translator.__translate_or()
         else:  # not operation
-            trans += Translator.__translate_not()
+            trans = Translator.__translate_not()
         return trans + Translator.__increment_stack()
 
     @staticmethod
@@ -141,6 +141,17 @@ class Translator:
         :param operation: the operation on the top stack value (M)
         :return: the asm code fot getting the stack register into A
         """
+        return Translator.__get_A_instruction(STACK) + GO_TO_PREVIOUS_REGISTER_M + operation
+
+    @staticmethod
+    def __operate_on_stack(operation):
+        """
+        @SP
+        A=M
+        operation
+        :param operation: the operation on the top stack value (M)
+        :return: the asm code fot getting the stack register into A
+        """
         return Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + operation
 
     @staticmethod
@@ -152,8 +163,8 @@ class Translator:
         :return: the asm code for inserting the most top value in the stack into the A-register and the second
         top value into the memory M
         """
-        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + Translator.__reduce_stack() +\
-               GO_TO_REGISTER_M + operation
+        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + Translator.__get_A_instruction(STACK) + \
+               GO_TO_PREVIOUS_REGISTER_M + operation
 
     @staticmethod
     def __jump_based_on_D(condition):
@@ -221,10 +232,10 @@ class Translator:
                                 Translator.__jump_based_on_D(condition)
         # the true and false labels - sets the stack value to the result of the comparison
         false_label_title = self.__create_label(FALSE_LABEL)
-        false_label_content = Translator.__operate_on_top_stack_value(FALSE_INTO_MEMORY)
+        false_label_content = Translator.__operate_on_stack(FALSE_INTO_MEMORY)
         jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + JUMP_ALWAYS_OPERATION
         true_label_title = self.__create_label(TRUE_LABEL)
-        true_label_content = Translator.__operate_on_top_stack_value(TRUE_INTO_MEMORY)
+        true_label_content = Translator.__operate_on_stack(TRUE_INTO_MEMORY)
         next_command_label = self.__create_label(NEXT_COMMAND_LABEL)
 
         # combines all the comparison code
@@ -365,10 +376,10 @@ class Translator:
         # push pointer
         if command == Parser.PUSH_COMMAND_TYPE:
             return Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + GETTING_REGISTER_VALUE + \
-                   Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
+                   Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
         # pop pointer
         else:
-            return Translator.__reduce_stack() + Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D) + \
+            return Translator.__reduce_stack() + Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + \
                    Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + UPDATE_MEMORY_TO_D
 
     @staticmethod
@@ -398,7 +409,7 @@ class Translator:
         *SP = *addr
         :return: the command for putting the content of the address in the stack
         """
-        return GO_TO_REGISTER_D + GETTING_REGISTER_VALUE + Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
+        return GO_TO_REGISTER_D + GETTING_REGISTER_VALUE + Translator.__operate_on_stack(UPDATE_MEMORY_TO_D)
 
     @staticmethod
     def __put_stack_content_in_address():
@@ -407,7 +418,7 @@ class Translator:
         :return: the command for putting the content of the stack in the address
         """
         return Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D +\
-               Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) +\
+               Translator.__operate_on_stack(GETTING_REGISTER_VALUE) + \
                Translator.__get_A_instruction(ADDR_STORE_REGISTER) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
 
     @staticmethod
@@ -419,7 +430,7 @@ class Translator:
         :return: the command for putting the content of the static variable in the stack
         """
         return Translator.__get_A_instruction(file_name + "." + address) + GETTING_REGISTER_VALUE + \
-               Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
+               Translator.__operate_on_stack(UPDATE_MEMORY_TO_D)
 
     @staticmethod
     def __put_stack_content_in_static(file_name, address):
@@ -429,7 +440,7 @@ class Translator:
         :param address: the address to access in the static segment
         :return: the command for putting the content of the stack in the static variable
         """
-        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
+        return Translator.__operate_on_stack(GETTING_REGISTER_VALUE) + \
                Translator.__get_A_instruction(file_name + "." + address) + UPDATE_MEMORY_TO_D
 
     @staticmethod
@@ -449,7 +460,7 @@ class Translator:
         :return: the command for putting the given address in the stack
         """
         return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE + \
-               Translator.__operate_on_top_stack_value(UPDATE_MEMORY_TO_D)
+               Translator.__operate_on_stack(UPDATE_MEMORY_TO_D)
 
     def __create_label(self, label_name):
         """
