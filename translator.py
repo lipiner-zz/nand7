@@ -45,6 +45,17 @@ JUMP_POSITIVE = "JGT"
 JUMP_NEGATIVE = "JLT"
 LABEL_PREFIX = "("
 LABEL_SUFFIX = ")"
+EMPTY_COMMAND = ""
+COMMENT_SIGN = "//"
+ADD_OPERATION = "add"
+SUB_OPERATION = "sub"
+NEGATION_OPERATION = "neg"
+EQUAL_OPERATION = "eq"
+GREATER_OPERATION = "gt"
+LOWER_OPERATION = "lt"
+AND_OPERATION = "and"
+OR_OPERATION = "or"
+NOT_OPERATION = "not"
 
 
 class Translator:
@@ -55,19 +66,51 @@ class Translator:
 
     def __init__(self, parser):
         """
-
-        :param parser:
+        initializes the Translator object the translates vm commands to asm commands
+        :param parser: a parser that is set to a certain line of vm file
         """
         self.__parser = parser
-        self.__label_counter = 0
+        self.__label_counter = 0  # counts label for comparison operations
 
     def translate(self):
         """
-
-        :param parser:
-        :return:
+        translates the command of the inner parser to asm code
+        :return: the asm code matching the parser operation
         """
-        pass
+        line_type = self.__parser.get_type
+        # returns a comment of the full command for the understandability of the asm file
+        line_comment = COMMENT_SIGN + self.__parser.get_command + END_OF_LINE_MARK
+        if line_type == Parser.ARITHMETIC_COMMAND_TYPE:
+            return line_comment + self.__translate_arithmetic()
+        elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
+            return line_comment + self.__translate_push_pop()
+        else:
+            return EMPTY_COMMAND
+
+    def __translate_arithmetic(self):
+        """
+        translate an arithmetic operation to asm
+        :return: the asm command matching the arithmetic operation
+        """
+        operation = self.__parser.get_operation
+        if operation == ADD_OPERATION:
+            return Translator.__translate_add()
+        elif operation == SUB_OPERATION:
+            return Translator.__translate_sub()
+        elif operation == NEGATION_OPERATION:
+            return Translator.__translate_neg()
+        elif operation == EQUAL_OPERATION:
+            return self.__translate_eq()
+        elif operation == GREATER_OPERATION:
+            return self.__translate_gt()
+        elif operation == LOWER_OPERATION:
+            return self.__translate_lt()
+        elif operation == AND_OPERATION:
+            return Translator.__translate_and()
+        elif operation == OR_OPERATION:
+            return Translator.__translate_or()
+        else:  # not operation
+            return Translator.__translate_not()
 
     @staticmethod
     def __reduce_stack():
