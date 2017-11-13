@@ -58,10 +58,10 @@ class Parser:
         """
         Reformat the command - removes comments and any white spaces
         """
-        self.__command = self.__command.strip()  # removes white spaces from the beginning and the end
-        comment_pos = self.__command.find(COMMENT_MARK)  # search for a comments chars "//"
+        self.__cleared_command = self.__command.strip()  # removes white spaces from the beginning and the end
+        comment_pos = self.__cleared_command.find(COMMENT_MARK)  # search for a comments chars "//"
         if comment_pos >= 0:
-            self.__cleared_command = self.__command[:comment_pos]  # removes any comment if there is any
+            self.__cleared_command = self.__cleared_command[:comment_pos]  # removes any comment if there is any
 
     def __set_type(self):
         """
@@ -96,7 +96,7 @@ class Parser:
 
     def get_operation(self):
         """
-        :return: the dest part of the command in case of the command is a C-address. Otherwise, returns None
+        :return: the arithmetic operation (add, sub, eq...). If the command is not an arithmetic command, returns None
         """
         return self.__arithmetic_operation
 
