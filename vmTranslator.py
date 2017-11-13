@@ -15,6 +15,7 @@ PATH_POS = 1  # the arguments position for the file path
 ASM_SUFFIX = "asm"
 VM_SUFFIX = "vm"
 WRITING_MODE = "w"
+FILE_NAME_POSITION = -1
 
 
 def translate_file(file_name):
@@ -30,7 +31,9 @@ def translate_file(file_name):
         # opening the output file in writing mode
         with open(output_file_name, WRITING_MODE) as output_file:
             # translating the file
-            file_parser = Parser(file_name[:-len(VM_SUFFIX)-1])
+            file_name_dirs = file_name.split(os.path.sep)  # split the path to its directories and the file name
+            file_name = file_name_dirs[FILE_NAME_POSITION][:-len(VM_SUFFIX)-1]  # gets the file name only
+            file_parser = Parser(file_name)
             file_translator = Translator(file_parser)
 
             for line in input_file:
