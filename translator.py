@@ -139,7 +139,7 @@ class Translator:
         :param operation: the operation on the top stack value (M)
         :return: the asm code fot getting the stack register into A
         """
-        return Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + operation
+        return Translator.__reduce_stack() + GO_TO_REGISTER_M + operation
 
     @staticmethod
     def __operate_on_two_top_stack_values(operation):
