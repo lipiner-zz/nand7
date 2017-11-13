@@ -79,7 +79,7 @@ class Translator:
         """
         line_type = self.__parser.get_type
         # returns a comment of the full command for the understandability of the asm file
-        line_comment = COMMENT_SIGN + self.__parser.get_command + END_OF_LINE_MARK
+        line_comment = COMMENT_SIGN + self.__parser.get_command() + END_OF_LINE_MARK
         if line_type == Parser.ARITHMETIC_COMMAND_TYPE:
             return line_comment + self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
