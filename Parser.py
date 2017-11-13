@@ -62,11 +62,11 @@ class Parser:
 
     def __set_type(self):
         """
-        Sets the type of the command: A-instruction / C-instruction / empty line / label
+        Sets the type of the command: pop command / push command / arithmetic / empty line
         """
         if len(self.__cleared_command) == 0:  # an empty command
             return EMPTY_COMMAND_TYPE
-        # search for special symbol. If there aren't any then it is C-instruction
+        # search for command names
         if PUSH_COMMAND_MARK in self.__cleared_command:
             return PUSH_COMMAND_TYPE
         if POP_COMMAND_MARK in self.__cleared_command:
@@ -99,20 +99,20 @@ class Parser:
 
     def get_command(self):
         """
-        :return: the comp part of the command in case of the command is a C-address. Otherwise, returns None
+        :return: the full VM original command
         """
         return self.__command
 
     def get_segment(self):
         """
-        :return: the jump part of the command in case of the command is a C-address. The jump can be an empty
-        string. If the command is not a C-instruction, returns None
+        :return: the segment part of the command, in case the command is a push/pop command. Otherwise, returns None
         """
         return self.__segment
 
     def get_address(self):
         """
-        :return: the address in the memory in the command in case of the command is a A-address. Otherwise, returns None
+        :return: the destination address part of the command, in case the command is a push/pop command.
+        Otherwise, returns None
         """
         return self.__dest_address
 
