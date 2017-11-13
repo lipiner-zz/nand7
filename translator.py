@@ -19,8 +19,8 @@ NOT_MEMORY = "M=!M" + END_OF_LINE_MARK
 OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
 AND_D_MEMORY = "M=M&D" + END_OF_LINE_MARK
 ADD_A_TO_D = "D=D+A" + END_OF_LINE_MARK
-FALSE_INTO_MEMORY = "M=0"
-TRUE_INTO_MEMORY = "M=-1"
+FALSE_INTO_MEMORY = "M=0" + END_OF_LINE_MARK
+TRUE_INTO_MEMORY = "M=-1" + END_OF_LINE_MARK
 LABELS_TRANSLATOR = {"local": "LCL", "argument": "ARG", "this": "THIS", "that": "THAT"}
 POINTER_ADDRESS_TRANSLATOR = {"0": "THIS", "1": "THAT"}
 STACK = "SP"
@@ -457,4 +457,4 @@ class Translator:
         :param label_name: the label name
         :return: the label name format with the current label counter
         """
-        return LABEL_PREFIX + label_name + str(self.__label_counter) + LABEL_SUFFIX
+        return LABEL_PREFIX + label_name + str(self.__label_counter) + LABEL_SUFFIX + END_OF_LINE_MARK
