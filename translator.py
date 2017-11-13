@@ -40,7 +40,7 @@ NEXT_COMMAND_LABEL = "CONTINUE_L"
 JUMP_NOT_NEGATIVE = "JGE"
 JUMP_NOT_POSITIVE = "JLE"
 JUMP_EQUAL = "JEQ"
-JUMP_ALWAYS = "0;JMP"
+JUMP_ALWAYS_OPERATION = "0;JMP" + END_OF_LINE_MARK
 JUMP_POSITIVE = "JGT"
 JUMP_NEGATIVE = "JLT"
 LABEL_PREFIX = "("
@@ -210,9 +210,9 @@ class Translator:
         # If the compare condition is greater than zero, then the result should be true now. For other conditions
         # the result should be false
         if condition == JUMP_POSITIVE:
-            set_result = true_label_address + JUMP_ALWAYS
+            set_result = true_label_address + JUMP_ALWAYS_OPERATION
         else:
-            set_result = false_label_address + JUMP_ALWAYS
+            set_result = false_label_address + JUMP_ALWAYS_OPERATION
 
         # regular_minus_content: no overflow risk on subtraction, so subtracting the 2 values and jump based on the
         # result to set the boolean value
@@ -222,7 +222,7 @@ class Translator:
         # the true and false labels - sets the stack value to the result of the comparison
         false_label_title = self.__create_label(FALSE_LABEL)
         false_label_content = Translator.__operate_on_top_stack_value(FALSE_INTO_MEMORY)
-        jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + JUMP_ALWAYS
+        jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + JUMP_ALWAYS_OPERATION
         true_label_title = self.__create_label(TRUE_LABEL)
         true_label_content = Translator.__operate_on_top_stack_value(TRUE_INTO_MEMORY)
         next_command_label = self.__create_label(NEXT_COMMAND_LABEL)
