@@ -2,7 +2,6 @@
 # imports #
 ###########
 import re
-import os
 
 #############
 # constants #
