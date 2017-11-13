@@ -214,7 +214,7 @@ class Translator:
         first_value_into_temp = stack_value + temp_register_address + UPDATE_MEMORY_TO_D
         regular_minus_label_address = Translator.__get_A_instruction(REGULAR_MINUS_LABEL + str(self.__label_counter))
         jump_if_not_negative = Translator.__jump_based_on_D(JUMP_NOT_NEGATIVE)
-        second_value = Translator.__reduce_stack() + GO_TO_REGISTER_M + GETTING_REGISTER_VALUE
+        second_value = Translator.__get_A_instruction(STACK) + GO_TO_PREVIOUS_REGISTER_M + GETTING_REGISTER_VALUE
         jump_if_not_positive = Translator.__jump_based_on_D(JUMP_NOT_POSITIVE)
 
         # set the result in case the top value is negative and the second is positive.
