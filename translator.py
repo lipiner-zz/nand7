@@ -1,3 +1,6 @@
+###########
+# imports #
+###########
 import Parser
 
 #############
@@ -127,7 +130,7 @@ class Translator:
     def __increment_stack():
         """
         @SP
-        M=M+1
+        M=M+1)
         :return: the asm code of reducing the stack
         """
         return Translator.__get_A_instruction(STACK) + INCREMENT_MEMORY
