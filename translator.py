@@ -161,7 +161,7 @@ class Translator:
         :param condition: the asm syntax for jump condition
         :return: the asm code for jumping based on the given condition and the value of D register
         """
-        return JUMP_ON_D + condition
+        return JUMP_ON_D + condition + END_OF_LINE_MARK
 
     @staticmethod
     def __translate_add():
