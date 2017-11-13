@@ -49,7 +49,6 @@ class Parser:
         self.__command = command
         self.__clear()
         self.__command_type = self.__set_type()
-        self.__cleared_command = None
         self.__segment = None
         self.__dest_address = None
         self.__arithmetic_operation = None
@@ -86,7 +85,6 @@ class Parser:
         """
         Parse the command into its parts and set the command / segment / dest address / arithmetic command
         """
-        print(self.__cleared_command)
         command_parts = re.split(COMMANDS_SEPARATOR, self.__cleared_command)  # split the command based on white spaces
         command_parts = list(filter(lambda x: x != "", command_parts))  # removes empty parts resulted by extra spaces
         if self.get_type() == ARITHMETIC_COMMAND_TYPE:
