@@ -64,8 +64,8 @@ NOT_OPERATION = "not"
 
 class Translator:
     """
-    A translator class translates an instruction in hack language to binary code. Consists on static methods that
-    translate a line when given a Parser object that parsed the line
+    A translator class that translates an instruction in vm language to machine code. Has an internal Parser object
+    that is set to a certain line and translates the current parsed line
     """
 
     def __init__(self, parser):
@@ -166,8 +166,8 @@ class Translator:
         :return: the asm code for inserting the most top value in the stack into the A-register and the second
         top value into the memory M
         """
-        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + Translator.__get_A_instruction(STACK) + \
-               GO_TO_PREVIOUS_REGISTER_M + operation
+        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
+               Translator.__get_A_instruction(STACK) + GO_TO_PREVIOUS_REGISTER_M + operation
 
     @staticmethod
     def __jump_based_on_D(condition):
@@ -236,7 +236,8 @@ class Translator:
         # the true and false labels - sets the stack value to the result of the comparison
         false_label_title = self.__create_label(FALSE_LABEL)
         false_label_content = Translator.__operate_on_stack(FALSE_INTO_MEMORY)
-        jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + JUMP_ALWAYS_OPERATION
+        jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + \
+                    JUMP_ALWAYS_OPERATION
         true_label_title = self.__create_label(TRUE_LABEL)
         true_label_content = Translator.__operate_on_stack(TRUE_INTO_MEMORY)
         next_command_label = self.__create_label(NEXT_COMMAND_LABEL)
