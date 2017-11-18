@@ -11,13 +11,15 @@ POP_COMMAND_TYPE = 'PO'
 ARITHMETIC_COMMAND_TYPE = 'A'
 EMPTY_COMMAND_TYPE = 'N'
 LABEL_COMMAND_TYPE = 'L'
-GOTO_COMMAND_TYPE = "J"
-IF_GOTO_COMMAND_TYPE = "CJ"
+GOTO_COMMAND_TYPE = 'J'
+IF_GOTO_COMMAND_TYPE = 'CJ'
+RETURN_COMMAND_TYPE = 'R'
 PUSH_COMMAND_MARK = 'push'
 POP_COMMAND_MARK = 'pop'
 LABEL_COMMAND_MARK = 'label'
 GOTO_COMMAND_MARK = 'goto'
 IF_GOTO_COMMAND_MARK = 'if-goto'
+RETURN_COMMAND_MARK = 'return'
 COMMENT_MARK = '//'
 COMMANDS_SEPARATOR = "\s"
 ARITHMETIC_POS = 0
@@ -77,12 +79,14 @@ class Parser:
             return PUSH_COMMAND_TYPE
         if POP_COMMAND_MARK in self.__cleared_command:
             return POP_COMMAND_TYPE
+        if LABEL_COMMAND_MARK in self.__cleared_command:
+            return LABEL_COMMAND_TYPE
+        if RETURN_COMMAND_MARK in self.__cleared_command:
+            return RETURN_COMMAND_TYPE
         if IF_GOTO_COMMAND_MARK in self.__cleared_command:  # first search for if-goto and only then for goto
             return IF_GOTO_COMMAND_MARK
         if GOTO_COMMAND_MARK in self.__cleared_command:
             return GOTO_COMMAND_TYPE
-        if LABEL_COMMAND_MARK in self.__cleared_command:
-            return LABEL_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
 
     def get_type(self):

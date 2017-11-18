@@ -483,3 +483,11 @@ class Translator:
         :return: The asm code for goto operation
         """
         return Translator.__get_A_instruction(address) + JUMP_ALWAYS_OPERATION
+
+    @staticmethod
+    def __translate_return():
+        """
+
+        :return:
+        """
+        pass
