@@ -10,10 +10,12 @@ PUSH_COMMAND_TYPE = 'PU'
 POP_COMMAND_TYPE = 'PO'
 ARITHMETIC_COMMAND_TYPE = 'A'
 EMPTY_COMMAND_TYPE = 'N'
+LABEL_COMMAND_TYPE = 'L'
 GOTO_COMMAND_TYPE = "J"
 IF_GOTO_COMMAND_TYPE = "CJ"
 PUSH_COMMAND_MARK = 'push'
 POP_COMMAND_MARK = 'pop'
+LABEL_COMMAND_MARK = 'label'
 GOTO_COMMAND_MARK = 'goto'
 IF_GOTO_COMMAND_MARK = 'if-goto'
 COMMENT_MARK = '//'
@@ -79,6 +81,8 @@ class Parser:
             return IF_GOTO_COMMAND_MARK
         if GOTO_COMMAND_MARK in self.__cleared_command:
             return GOTO_COMMAND_TYPE
+        if LABEL_COMMAND_MARK in self.__cleared_command:
+            return LABEL_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
 
     def get_type(self):
@@ -100,6 +104,8 @@ class Parser:
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
         elif self.__command_type == GOTO_COMMAND_TYPE or self.__command_type == IF_GOTO_COMMAND_MARK:
             self.__dest_address = command_parts[GOTO_ADDRESS_POS]
+        elif self.__command_type == LABEL_COMMAND_TYPE:
+            self.__segment = command_parts[SEGMENT_POS]
 
     def get_operation(self):
         """
