@@ -22,7 +22,7 @@ COMMENT_MARK = '//'
 COMMANDS_SEPARATOR = "\s"
 ARITHMETIC_POS = 0
 COMMAND_POS = 0
-SEGMENT_POS = 1
+SEGMENT_LABEL_POS = 1
 DEST_ADDRESS_POS = 2
 GOTO_ADDRESS_POS = 1
 
@@ -38,7 +38,7 @@ class Parser:
         self.__command = None
         self.__command_type = None
         self.__cleared_command = None
-        self.__segment = None
+        self.__segment_label = None  # the name of the segment or the label (depend on the command)
         self.__dest_address = None
         self.__arithmetic_operation = None
         self.__file_name = file_name
@@ -52,7 +52,7 @@ class Parser:
         self.__command = command
         self.__clear()
         self.__command_type = self.__set_type()
-        self.__segment = None
+        self.__segment_label = None
         self.__dest_address = None
         self.__arithmetic_operation = None
 
@@ -100,12 +100,12 @@ class Parser:
         if self.__command_type == ARITHMETIC_COMMAND_TYPE:
             self.__arithmetic_operation = command_parts[ARITHMETIC_POS]
         elif self.__command_type == PUSH_COMMAND_TYPE or self.__command_type == POP_COMMAND_TYPE:
-            self.__segment = command_parts[SEGMENT_POS]
+            self.__segment_label = command_parts[SEGMENT_LABEL_POS]
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
         elif self.__command_type == GOTO_COMMAND_TYPE or self.__command_type == IF_GOTO_COMMAND_MARK:
             self.__dest_address = command_parts[GOTO_ADDRESS_POS]
         elif self.__command_type == LABEL_COMMAND_TYPE:
-            self.__segment = command_parts[SEGMENT_POS]
+            self.__segment_label = command_parts[SEGMENT_LABEL_POS]
 
     def get_operation(self):
         """
@@ -123,7 +123,7 @@ class Parser:
         """
         :return: the segment part of the command, in case the command is a push/pop command. Otherwise, returns None
         """
-        return self.__segment
+        return self.__segment_label
 
     def get_address(self):
         """
