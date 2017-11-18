@@ -473,3 +473,13 @@ class Translator:
         :return: the label name format with the current label counter
         """
         return LABEL_PREFIX + label_name + str(self.__label_counter) + LABEL_SUFFIX + END_OF_LINE_MARK
+
+    @staticmethod
+    def __translate_goto(address):
+        """
+        @address
+        0;JMP
+        :param address: the address of the goto - where to jump to
+        :return: The asm code for goto operation
+        """
+        return Translator.__get_A_instruction(address) + JUMP_ALWAYS_OPERATION

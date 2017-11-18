@@ -10,14 +10,19 @@ PUSH_COMMAND_TYPE = 'PU'
 POP_COMMAND_TYPE = 'PO'
 ARITHMETIC_COMMAND_TYPE = 'A'
 EMPTY_COMMAND_TYPE = 'N'
+GOTO_COMMAND_TYPE = "J"
+IF_GOTO_COMMAND_TYPE = "CJ"
 PUSH_COMMAND_MARK = 'push'
 POP_COMMAND_MARK = 'pop'
+GOTO_COMMAND_MARK = 'goto'
+IF_GOTO_COMMAND_MARK = 'if-goto'
 COMMENT_MARK = '//'
 COMMANDS_SEPARATOR = "\s"
 ARITHMETIC_POS = 0
 COMMAND_POS = 0
 SEGMENT_POS = 1
 DEST_ADDRESS_POS = 2
+GOTO_ADDRESS_POS = 1
 
 
 class Parser:
@@ -70,6 +75,10 @@ class Parser:
             return PUSH_COMMAND_TYPE
         if POP_COMMAND_MARK in self.__cleared_command:
             return POP_COMMAND_TYPE
+        if IF_GOTO_COMMAND_MARK in self.__cleared_command:  # first search for if-goto and only then for goto
+            return IF_GOTO_COMMAND_MARK
+        if GOTO_COMMAND_MARK in self.__cleared_command:
+            return GOTO_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
 
     def get_type(self):
@@ -84,11 +93,13 @@ class Parser:
         """
         command_parts = re.split(COMMANDS_SEPARATOR, self.__cleared_command)  # split the command based on white spaces
         command_parts = list(filter(lambda x: x != "", command_parts))  # removes empty parts resulted by extra spaces
-        if self.get_type() == ARITHMETIC_COMMAND_TYPE:
+        if self.__command_type == ARITHMETIC_COMMAND_TYPE:
             self.__arithmetic_operation = command_parts[ARITHMETIC_POS]
-        elif self.get_type() == PUSH_COMMAND_TYPE or self.get_type() == POP_COMMAND_TYPE:
+        elif self.__command_type == PUSH_COMMAND_TYPE or self.__command_type == POP_COMMAND_TYPE:
             self.__segment = command_parts[SEGMENT_POS]
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
+        elif self.__command_type == GOTO_COMMAND_TYPE or self.__command_type == IF_GOTO_COMMAND_MARK:
+            self.__dest_address = command_parts[GOTO_ADDRESS_POS]
 
     def get_operation(self):
         """
