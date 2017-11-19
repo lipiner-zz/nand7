@@ -14,12 +14,16 @@ LABEL_COMMAND_TYPE = 'L'
 GOTO_COMMAND_TYPE = 'J'
 IF_GOTO_COMMAND_TYPE = 'CJ'
 RETURN_COMMAND_TYPE = 'R'
+FUNCTION_COMMAND_TYPE = 'F'
+CALL_COMMAND_TYPE = 'C'
 PUSH_COMMAND_MARK = 'push'
 POP_COMMAND_MARK = 'pop'
 LABEL_COMMAND_MARK = 'label'
 GOTO_COMMAND_MARK = 'goto'
 IF_GOTO_COMMAND_MARK = 'if-goto'
 RETURN_COMMAND_MARK = 'return'
+FUNCTION_COMMAND_MARK = 'function'
+CALL_COMMAND_MARK = 'call'
 COMMENT_MARK = '//'
 COMMANDS_SEPARATOR = "\s"
 ARITHMETIC_POS = 0
@@ -43,6 +47,8 @@ class Parser:
         self.__segment_label = None  # the name of the segment or the label (depend on the command)
         self.__dest_address = None
         self.__arithmetic_operation = None
+        self.__function_name = None
+        self.__function_arg_var_num = None
         self.__file_name = file_name
 
     def set_command(self, command):
@@ -57,6 +63,8 @@ class Parser:
         self.__segment_label = None
         self.__dest_address = None
         self.__arithmetic_operation = None
+        self.__function_name = None
+        self.__function_arg_var_num = None
 
     def __clear(self):
         """
@@ -123,7 +131,7 @@ class Parser:
         """
         return self.__command
 
-    def get_segment(self):
+    def get_segment_label(self):
         """
         :return: the segment part of the command, in case the command is a push/pop command. Otherwise, returns None
         """

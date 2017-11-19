@@ -296,7 +296,7 @@ class Translator:
         """
         :return: The asm code for the push/pop operation
         """
-        segment = self.__parser.get_segment()
+        segment = self.__parser.get_segment_label()
         address = self.__parser.get_address()
         command = self.__parser.get_type()
 
