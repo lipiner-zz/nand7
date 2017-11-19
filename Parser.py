@@ -133,7 +133,7 @@ class Parser:
             if self.__function_called_name not in self.__functions_calls:
                 self.__functions_calls[self.__function_called_name] = 0
             else:
-                self.__functions_calls[__function_called_name] += 1
+                self.__functions_calls[self.__function_called_name] += 1
         elif self.__command_type == FUNCTION_COMMAND_TYPE:
             self.__function_name = command_parts[FUNCTION_NAME_POS]
             self.__function_arg_var_num = command_parts[FUNCTION_ARGS_VARS_POS]
@@ -171,7 +171,7 @@ class Parser:
         """
         return self.__file_name
 
-    def get_function_name(self):
+    def get_declared_function_name(self):
         """
         :return: the current function name. If it is current out of a function, returns None
         """

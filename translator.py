@@ -18,6 +18,7 @@ UPDATE_MEMORY_TO_D = "M=D" + END_OF_LINE_MARK
 ADDING_D_TO_MEMORY = "M=D+M" + END_OF_LINE_MARK
 SUBTRACTION_D_FROM_M_TO_M = "M=M-D" + END_OF_LINE_MARK
 SUBTRACTION_M_FROM_D_TO_D = "D=D-M" + END_OF_LINE_MARK
+SUBTRACTION_D_FROM_M_TO_D = "D=M-D" + END_OF_LINE_MARK
 NEGATION_MEMORY = "M=-M" + END_OF_LINE_MARK
 NOT_MEMORY = "M=!M" + END_OF_LINE_MARK
 OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
@@ -47,9 +48,13 @@ JUMP_EQUAL = "JEQ"
 JUMP_ALWAYS_OPERATION = "0;JMP" + END_OF_LINE_MARK
 JUMP_POSITIVE = "JGT"
 JUMP_NEGATIVE = "JLT"
+JUMP_NOT_EQUAL = "JNE"
 LABEL_PREFIX = "("
 LABEL_SUFFIX = ")"
 EMPTY_COMMAND = ""
+LABEL_FILENAME_SEPARATOR = "."
+LABEL_SEP = "$"
+LABEL_ALTER_SEP = "."  # alternative label separator for the vm translator usage
 COMMENT_SIGN = "//"
 ADD_OPERATION = "add"
 SUB_OPERATION = "sub"
@@ -60,6 +65,14 @@ LOWER_OPERATION = "lt"
 AND_OPERATION = "and"
 OR_OPERATION = "or"
 NOT_OPERATION = "not"
+RETURN_LABEL = "ret."
+LOCAL_KEYWORD = "LCL"
+ARGUMENT_KEYWORD = "ARG"
+THIS_KEYWORD = "THIS"
+THAT_KEYWORD = "THAT"
+DIST_TO_RET_ADDRESS = 5
+LOOP_LABEL = "LOOP"
+END_LOOP_LABEL = "ENDLOOP"
 
 
 class Translator:
@@ -116,6 +129,19 @@ class Translator:
         else:  # not operation
             trans = Translator.__translate_not()
         return trans + Translator.__increment_stack()
+
+    def __translate_branching(self):
+        """
+        translate an branching operation to asm
+        :return: the asm command matching the branching operation
+        """
+        jump_label = self.__create_full_label_name(self.__parser.get_segment_label, LABEL_SEP)
+        if self.__parser.get_type == Parser.LABEL_COMMAND_TYPE:
+            return self.__create_label(self.__parser.get_segment_label, LABEL_SEP)
+        elif self.__parser.get_type == Parser.GOTO_COMMAND_TYPE:
+            return Translator.__translate_goto(jump_label)
+        else:  # if-goto command
+            return Translator.__translate_if_goto(jump_label)
 
     @staticmethod
     def __reduce_stack():
@@ -230,17 +256,17 @@ class Translator:
 
         # regular_minus_content: no overflow risk on subtraction, so subtracting the 2 values and jump based on the
         # result to set the boolean value
-        regular_minus_label_title = self.__create_label(REGULAR_MINUS_LABEL)
+        regular_minus_label_title = self.__create_label(REGULAR_MINUS_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
         regular_minus_content = stack_value + temp_register_address + SUBTRACTION_M_FROM_D_TO_D + true_label_address + \
                                 Translator.__jump_based_on_D(condition)
         # the true and false labels - sets the stack value to the result of the comparison
-        false_label_title = self.__create_label(FALSE_LABEL)
+        false_label_title = self.__create_label(FALSE_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
         false_label_content = Translator.__operate_on_stack(FALSE_INTO_MEMORY)
         jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + \
                     JUMP_ALWAYS_OPERATION
-        true_label_title = self.__create_label(TRUE_LABEL)
+        true_label_title = self.__create_label(TRUE_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
         true_label_content = Translator.__operate_on_stack(TRUE_INTO_MEMORY)
-        next_command_label = self.__create_label(NEXT_COMMAND_LABEL)
+        next_command_label = self.__create_label(NEXT_COMMAND_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
 
         # combines all the comparison code
         trans = first_value_into_temp + regular_minus_label_address + jump_if_not_negative + second_value + \
@@ -379,13 +405,21 @@ class Translator:
         """
         # push pointer
         if command == Parser.PUSH_COMMAND_TYPE:
-            return Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + GETTING_REGISTER_VALUE + \
-                   Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
+            return Translator.__push_address_to_stack(POINTER_ADDRESS_TRANSLATOR[address])
         # pop pointer
         else:
             return Translator.__reduce_stack() + Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + \
                    Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + UPDATE_MEMORY_TO_D
 
+    @staticmethod
+    def __push_address_to_stack(address):
+        """
+        returns the hack command for pushing the value in the given address to the stack
+        :param address: the address that holds the value to be pushed into the stack
+        :return: the matching hack command
+        """
+        return Translator.__get_A_instruction(address) + GETTING_REGISTER_VALUE + \
+               Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
     @staticmethod
     def __get_local_address(segment, address):
         """
@@ -466,20 +500,37 @@ class Translator:
         return Translator.__get_A_instruction(address) + GETTING_ADDRESS_VALUE + \
                Translator.__operate_on_stack(UPDATE_MEMORY_TO_D)
 
-    def __create_label(self, label_name):
+    def __create_label(self, label_name, label_sep):
         """
         (label_name + INDEX)
         :param label_name: the label name
+        :param label_sep: the separator between the file name and function name and the label name
         :return: the label name format with the current label counter
         """
-        return LABEL_PREFIX + label_name + str(self.__label_counter) + LABEL_SUFFIX + END_OF_LINE_MARK
+        return LABEL_PREFIX + self.__create_full_label_name(label_name, label_sep) + LABEL_SUFFIX + END_OF_LINE_MARK
+
+    def __create_full_label_name(self, label_name, label_sep):
+        """
+        creates the full label name according to the convention
+        :param label_name: the pure label name
+        :param label_sep: the separator between the label prefix and the pure label name
+        :return: the full label name
+        """
+        label_full_name = self.__parser.get_file_name()
+        # if the label is created inside call command: adds the called function name
+        if self.__parser.get_type() == Parser.CALL_COMMAND_TYPE:
+            label_full_name += LABEL_FILENAME_SEPARATOR + self.__parser.get_called_function_name()
+            # if the label is inside a function: adds the outer function name
+        elif self.__parser.get_declared_function_name():
+            label_full_name += LABEL_FILENAME_SEPARATOR + self.__parser.get_declared_function_name()
+        label_full_name += label_sep + label_name
+        return label_full_name
 
     @staticmethod
     def __translate_goto(address):
         """
         @address
         0;JMP
-        :param address: the address of the goto - where to jump to
         :return: The asm code for goto operation
         """
         return Translator.__get_A_instruction(address) + JUMP_ALWAYS_OPERATION
@@ -493,18 +544,64 @@ class Translator:
         pass
 
     @staticmethod
-    def translate_booting(): ##
+    def translate_booting():
         pass
 
-    def __translate_label(self): ##
-        pass
+    def __translate_label(self):
+        """
+        translates label vm command to hack command
+        :return: the matching hack command
+        """
+        return self.__create_label(self.__parser.get_segment_label, LABEL_SEP)
 
-    def __translate_if_goto(self):
-        pass
+    @staticmethod
+    def __translate_if_goto(address):
+        """
+        translates if-goto vm command to hack command
+        :return: the matching hack command
+        """
+        return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
+               Translator.__get_A_instruction(address) + JUMP_ON_D + JUMP_NOT_EQUAL + END_OF_LINE_MARK
 
-    def __translate_call(self): ##
-        pass
+    def __translate_call(self):
+        """
+        translates function call vm command to hack command
+        :return: the matching hack command
+        """
+        return_address = RETURN_LABEL + self.__parser.get_function_call_number()
+        full_return_address = self.__create_full_label_name(return_address, LABEL_SEP)
+        push_ret_address = Translator.__put_address_in_stack(full_return_address) + Translator.__increment_stack()
+        push_LCL = Translator.__push_address_to_stack(LOCAL_KEYWORD)
+        push_ARG = Translator.__push_address_to_stack(ARGUMENT_KEYWORD)
+        push_THIS = Translator.__push_address_to_stack(THIS_KEYWORD)
+        push_THAT = Translator.__push_address_to_stack(THAT_KEYWORD)
+        repos_ARG = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
+                    Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + \
+                    ADD_A_TO_D + Translator.__get_A_instruction(STACK) + SUBTRACTION_D_FROM_M_TO_D + \
+                    Translator.__get_A_instruction(ARGUMENT_KEYWORD) + UPDATE_MEMORY_TO_D
+        repos_LCL = Translator.__get_A_instruction(STACK) + GETTING_REGISTER_VALUE + \
+                    Translator.__get_A_instruction(LOCAL_KEYWORD) + UPDATE_MEMORY_TO_D
+        jump_to_func = Translator.__translate_goto(self.__get_full_func_name(self.__parser.get_called_function_name()))
+        return_label = self.__create_label(return_address, LABEL_SEP)
 
-    def __translate_function_declaration(self): ##label name, function name
-        pass
+        return push_ret_address + push_LCL + push_ARG + push_THIS + push_THAT + repos_ARG + repos_LCL + \
+               jump_to_func + return_label
+
+    def __get_full_func_name(self, func_name):
+        """
+        returns a full function name: filename.funcname
+        :param func_name: the pure function name
+        :return: filename.funcname
+        """
+        return self.__parser.get_file_name() + LABEL_FILENAME_SEPARATOR + func_name
+
+    def __translate_function_declaration(self):
+        """
+        translates function declaration vm command to hack command
+        :return: the matching hack command
+        """
+        push_vars = Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + GETTING_ADDRESS_VALUE + \
+                    self.__create_label(LOOP_LABEL, LABEL_ALTER_SEP) + \
+                    Translator.__get_A_instruction(self.__create_full_label_name(END_LOOP_LABEL, LABEL_ALTER_SEP)) + \
+
 
