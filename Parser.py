@@ -149,3 +149,12 @@ class Parser:
         :return: the VM file name
         """
         return self.__file_name
+
+    def get_function_name(self):
+        pass
+
+    def get_function_call_number(self):
+        pass
+
+    def get_function_arg_var_num(self):
+        pass
