@@ -104,9 +104,10 @@ class Translator:
             return line_comment + self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
             return line_comment + self.__translate_push_pop()
-        elif line_type == Parser.GOTO_COMMAND_TYPE or \
-                line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.LABEL_COMMAND_TYPE:
-                return Translator.__translate_branching(self.__parser.get_address)
+        elif line_type == Parser.LABEL_COMMAND_TYPE:
+            return self.__create_label(self.__parser.get_segment_label, LABEL_SEP)
+        elif line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.LABEL_COMMAND_TYPE:
+                return Translator.__translate_jumps(self.__parser.get_address)
         elif line_type == Parser.CALL_COMMAND_TYPE:
             return self.__translate_call()
         elif line_type == Parser.FUNCTION_COMMAND_TYPE:
@@ -142,15 +143,13 @@ class Translator:
             trans = Translator.__translate_not()
         return trans + Translator.__increment_stack()
 
-    def __translate_branching(self):
+    def __translate_jumps(self):
         """
-        translate an branching operation to asm
+        translate a jump (goto or if-goto) command to asm
         :return: the asm command matching the branching operation
         """
         jump_label = self.__create_full_label_name(self.__parser.get_segment_label, LABEL_SEP)
-        if self.__parser.get_type == Parser.LABEL_COMMAND_TYPE:
-            return self.__create_label(self.__parser.get_segment_label, LABEL_SEP)
-        elif self.__parser.get_type == Parser.GOTO_COMMAND_TYPE:
+        if self.__parser.get_type == Parser.GOTO_COMMAND_TYPE:
             return Translator.__translate_goto(jump_label)
         else:  # if-goto command
             return Translator.__translate_if_goto(jump_label)
