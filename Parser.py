@@ -31,6 +31,8 @@ COMMAND_POS = 0
 SEGMENT_LABEL_POS = 1
 DEST_ADDRESS_POS = 2
 GOTO_ADDRESS_POS = 1
+FUNCTION_NAME_POS = 1
+FUNCTION_ARGS_VARS_POS = 2
 
 
 class Parser:
@@ -48,8 +50,10 @@ class Parser:
         self.__dest_address = None
         self.__arithmetic_operation = None
         self.__function_name = None
+        self.__function_called_name = None  # the function name when calling a function
         self.__function_arg_var_num = None
         self.__file_name = file_name
+        self.__functions_calls = {}  # stores all the called functions and its call number
 
     def set_command(self, command):
         """
@@ -64,6 +68,7 @@ class Parser:
         self.__dest_address = None
         self.__arithmetic_operation = None
         self.__function_name = None
+        self.__function_called_name = None
         self.__function_arg_var_num = None
 
     def __clear(self):
@@ -91,6 +96,10 @@ class Parser:
             return LABEL_COMMAND_TYPE
         if RETURN_COMMAND_MARK in self.__cleared_command:
             return RETURN_COMMAND_TYPE
+        if CALL_COMMAND_TYPE in self.__cleared_command:
+            return CALL_COMMAND_TYPE
+        if FUNCTION_COMMAND_MARK in self.__cleared_command:
+            return FUNCTION_COMMAND_TYPE
         if IF_GOTO_COMMAND_MARK in self.__cleared_command:  # first search for if-goto and only then for goto
             return IF_GOTO_COMMAND_MARK
         if GOTO_COMMAND_MARK in self.__cleared_command:
@@ -118,6 +127,18 @@ class Parser:
             self.__dest_address = command_parts[GOTO_ADDRESS_POS]
         elif self.__command_type == LABEL_COMMAND_TYPE:
             self.__segment_label = command_parts[SEGMENT_LABEL_POS]
+        elif self.__command_type == CALL_COMMAND_TYPE:
+            self.__function_called_name = command_parts[FUNCTION_NAME_POS]
+            self.__function_arg_var_num = command_parts[FUNCTION_ARGS_VARS_POS]
+            if self.__function_called_name not in self.__functions_calls:
+                self.__functions_calls[self.__function_called_name] = 0
+            else:
+                self.__functions_calls[__function_called_name] += 1
+        elif self.__command_type == FUNCTION_COMMAND_TYPE:
+            self.__function_name = command_parts[FUNCTION_NAME_POS]
+            self.__function_arg_var_num = command_parts[FUNCTION_ARGS_VARS_POS]
+        elif self.__command_type == RETURN_COMMAND_TYPE:
+            self.__function_name = None
 
     def get_operation(self):
         """
@@ -151,10 +172,27 @@ class Parser:
         return self.__file_name
 
     def get_function_name(self):
-        pass
+        """
+        :return: the current function name. If it is current out of a function, returns None
+        """
+        return self.__function_name
+
+    def get_called_function_name(self):
+        """
+        :return: the name of the called function on a call command
+        """
+        return self.__function_called_name
 
     def get_function_call_number(self):
-        pass
+        """
+        :return: the number of the calls to the current function. If it is current out of a function, returns None
+        """
+        if self.__function_called_name is None:
+            return None
+        return self.__functions_calls[self.__function_called_name]
 
     def get_function_arg_var_num(self):
-        pass
+        """
+        :return: the number of args when calling a function or the number of variables the function needs on declaration
+        """
+        return self.__function_arg_var_num
