@@ -16,10 +16,12 @@ REDUCE_MEMORY = "M=M-1" + END_OF_LINE_MARK
 INCREMENT_MEMORY = "M=M+1" + END_OF_LINE_MARK
 REDUCE_D = "D=D-1" + END_OF_LINE_MARK
 UPDATE_MEMORY_TO_D = "M=D" + END_OF_LINE_MARK
+UPDATE_MEMORY_TO_INCREMENTED_D = "M=D+1" + END_OF_LINE_MARK
 ADDING_D_TO_MEMORY = "M=D+M" + END_OF_LINE_MARK
 SUBTRACTION_D_FROM_M_TO_M = "M=M-D" + END_OF_LINE_MARK
 SUBTRACTION_M_FROM_D_TO_D = "D=D-M" + END_OF_LINE_MARK
 SUBTRACTION_D_FROM_M_TO_D = "D=M-D" + END_OF_LINE_MARK
+SUBTRACTION_D_FROM_M_TO_A = "A=M-D" + END_OF_LINE_MARK
 NEGATION_MEMORY = "M=-M" + END_OF_LINE_MARK
 NOT_MEMORY = "M=!M" + END_OF_LINE_MARK
 OR_D_MEMORY = "M=M|D" + END_OF_LINE_MARK
@@ -72,6 +74,10 @@ ARGUMENT_KEYWORD = "ARG"
 THIS_KEYWORD = "THIS"
 THAT_KEYWORD = "THAT"
 DIST_TO_RET_ADDRESS = 5
+DIST_TO_RET_LCL = 4
+DIST_TO_RET_ARG = 3
+DIST_TO_RET_THIS = 2
+DIST_TO_RET_THAT = 1
 LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
 
@@ -533,6 +539,7 @@ class Translator:
         """
         @address
         0;JMP
+        :param: address: the address for the destination of the jump
         :return: The asm code for goto operation
         """
         return Translator.__get_A_instruction(address) + JUMP_ALWAYS_OPERATION
@@ -540,10 +547,23 @@ class Translator:
     @staticmethod
     def __translate_return():
         """
-
-        :return:
+        :return: the machine hack commands for a vm return command
         """
-        pass
+        copies_return_val = Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
+            Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        clears_stack = Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GETTING_REGISTER_VALUE + \
+            Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_INCREMENTED_D
+        stores_return_into_stack = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
+            Translator.__get_A_instruction(LOCAL_KEYWORD) + SUBTRACTION_D_FROM_M_TO_A + \
+            Translator.__register_value_into_other_register(STACK)
+        restore_THAT = Translator.__restores_outer_function_segments(THAT_KEYWORD)
+        restore_THIS = Translator.__restores_outer_function_segments(THIS_KEYWORD)
+        restore_ARG = Translator.__restores_outer_function_segments(ARGUMENT_KEYWORD)
+        restore_LCL = Translator.__restores_outer_function_segments(LOCAL_KEYWORD)
+        jump_return = Translator.__operate_on_stack(GO_TO_REGISTER_M) + JUMP_ALWAYS_OPERATION
+
+        return copies_return_val + clears_stack + stores_return_into_stack + restore_THAT + restore_THIS + \
+               restore_ARG + restore_LCL + jump_return
 
     @staticmethod
     def translate_booting():
@@ -564,6 +584,27 @@ class Translator:
         """
         return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
                Translator.__get_A_instruction(address) + JUMP_ON_D + JUMP_NOT_EQUAL + END_OF_LINE_MARK
+
+    @staticmethod
+    def __restores_outer_function_segments(dest_register):
+        """
+        :param dest_register: the register we want to restore its value
+        :return: the matching hack command
+        """
+        return Translator.__get_A_instruction(LOCAL_KEYWORD) + GO_TO_PREVIOUS_REGISTER_M + \
+               Translator.__register_value_into_other_register(dest_register)
+
+    @staticmethod
+    def __register_value_into_other_register(dest_register):
+        """
+        D=M
+        @dest_register
+        A=M
+        M=D
+        :param dest_register: the destination register address for the current memory value
+        :return: the machine hack commands for getting the current register value (M) into the dest register
+        """
+        return GETTING_REGISTER_VALUE + Translator.__get_A_instruction(dest_register) + UPDATE_MEMORY_TO_D
 
     def __translate_call(self):
         """
