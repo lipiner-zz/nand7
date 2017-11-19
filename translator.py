@@ -82,7 +82,6 @@ LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
 
 
-
 class Translator:
     """
     A translator class that translates an instruction in vm language to machine code. Has an internal Parser object
@@ -109,6 +108,15 @@ class Translator:
             return line_comment + self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
             return line_comment + self.__translate_push_pop()
+        elif line_type == Parser.GOTO_COMMAND_TYPE or \
+                line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.LABEL_COMMAND_TYPE:
+                return Translator.__translate_branching(self.__parser.get_address)
+        elif line_type == Parser.CALL_COMMAND_TYPE:
+            return self.__translate_call()
+        elif line_type == Parser.FUNCTION_COMMAND_TYPE:
+            return self.__translate_function_declaration()
+        elif line_type == Parser.RETURN_COMMAND_TYPE:
+            return self.__translate_return()
         else:
             return EMPTY_COMMAND
 
