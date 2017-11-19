@@ -71,7 +71,6 @@ def translate_directory(directory_name):
         for directory_file in files_list:
             if VM_SUFFIX == directory_file[-len(VM_SUFFIX):]:  # if the file is a vm file
                 file_counter += 1
-                #### IS NEEDED????
                 vm_file_name = os.path.join(directory_name, directory_file)  # creates a full path of the file name
                 with open(vm_file_name) as input_file:
                     translate_file(input_file, vm_file_name, output_file, file_counter == 1)
