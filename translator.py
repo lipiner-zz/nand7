@@ -491,3 +491,20 @@ class Translator:
         :return:
         """
         pass
+
+    @staticmethod
+    def translate_booting(): ##
+        pass
+
+    def __translate_label(self): ##
+        pass
+
+    def __translate_if_goto(self):
+        pass
+
+    def __translate_call(self): ##
+        pass
+
+    def __translate_function_declaration(self): ##label name, function name
+        pass
+
