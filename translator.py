@@ -14,6 +14,7 @@ GETTING_REGISTER_VALUE = "D=M" + END_OF_LINE_MARK
 GETTING_ADDRESS_VALUE = "D=A" + END_OF_LINE_MARK
 REDUCE_MEMORY = "M=M-1" + END_OF_LINE_MARK
 INCREMENT_MEMORY = "M=M+1" + END_OF_LINE_MARK
+REDUCE_D = "D=D-1" + END_OF_LINE_MARK
 UPDATE_MEMORY_TO_D = "M=D" + END_OF_LINE_MARK
 ADDING_D_TO_MEMORY = "M=D+M" + END_OF_LINE_MARK
 SUBTRACTION_D_FROM_M_TO_M = "M=M-D" + END_OF_LINE_MARK
@@ -73,6 +74,7 @@ THAT_KEYWORD = "THAT"
 DIST_TO_RET_ADDRESS = 5
 LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
+
 
 
 class Translator:
@@ -600,8 +602,14 @@ class Translator:
         translates function declaration vm command to hack command
         :return: the matching hack command
         """
+        create_func_label = self.__create_label(EMPTY_COMMAND, EMPTY_COMMAND)
         push_vars = Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + GETTING_ADDRESS_VALUE + \
                     self.__create_label(LOOP_LABEL, LABEL_ALTER_SEP) + \
                     Translator.__get_A_instruction(self.__create_full_label_name(END_LOOP_LABEL, LABEL_ALTER_SEP)) + \
+                    Translator.__jump_based_on_D(JUMP_EQUAL) + Translator.__operate_on_stack(FALSE_INTO_MEMORY) + \
+                    Translator.__increment_stack() + REDUCE_D + \
+                    Translator.__translate_goto(self.__create_full_label_name(LOOP_LABEL, LABEL_ALTER_SEP)) + \
+                    self.__create_label(END_LOOP_LABEL, LABEL_ALTER_SEP)
 
+        return create_func_label + push_vars
 
