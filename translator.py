@@ -77,6 +77,7 @@ DIST_TO_RET_ADDRESS = 5
 LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
 STACK_INITIAL_ADDRESS = 256
+SYS_INIT_VM_COMMAND = "call Sys.init 0"
 
 class Translator:
     """
@@ -568,14 +569,17 @@ class Translator:
         return copies_return_val + clears_stack + stores_return_into_stack + restore_THAT + restore_THIS + \
                restore_ARG + restore_LCL + jump_return
 
-    @staticmethod
-    def translate_booting():
+    def translate_booting(self):
         """
         Creates the asm commands for calling the sys.init file and initializing the stack.
         :return: the machine hack commands
         """
+        self.__parser.set_command(SYS_INIT_VM_COMMAND)
+        self.__parser.parse()
         trans = Translator.__get_A_instruction(STACK_INITIAL_ADDRESS) + GETTING_ADDRESS_VALUE + \
-                Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_D
+            Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_D + \
+            self.__translate_call()
+        return trans
 
     def __translate_label(self):
         """

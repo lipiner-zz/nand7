@@ -32,7 +32,7 @@ def translate_file(input_file, input_file_name, output_file, write_boot):
 
     # if needed: puts the booting line at the start of the file
     if write_boot:
-        output_file.write(Translator.translate_booting())
+        output_file.write(file_translator.translate_booting())
 
     # the input file translation
     for line in input_file:
