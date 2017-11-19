@@ -74,13 +74,9 @@ ARGUMENT_KEYWORD = "ARG"
 THIS_KEYWORD = "THIS"
 THAT_KEYWORD = "THAT"
 DIST_TO_RET_ADDRESS = 5
-DIST_TO_RET_LCL = 4
-DIST_TO_RET_ARG = 3
-DIST_TO_RET_THIS = 2
-DIST_TO_RET_THAT = 1
 LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
-
+STACK_INITIAL_ADDRESS = 256
 
 class Translator:
     """
@@ -575,7 +571,12 @@ class Translator:
 
     @staticmethod
     def translate_booting():
-        pass
+        """
+
+        :return:
+        """
+        trans = Translator.__get_A_instruction(STACK_INITIAL_ADDRESS) + GETTING_ADDRESS_VALUE + \
+                Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_D
 
     def __translate_label(self):
         """
