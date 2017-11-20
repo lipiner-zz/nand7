@@ -106,9 +106,9 @@ class Translator:
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
             return line_comment + self.__translate_push_pop()
         elif line_type == Parser.LABEL_COMMAND_TYPE:
-            return self.__create_label(self.__parser.get_segment_label, LABEL_SEP)
+            return self.__create_label(self.__parser.get_segment_label(), LABEL_SEP)
         elif line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.LABEL_COMMAND_TYPE:
-                return Translator.__translate_jumps(self.__parser.get_address)
+                return Translator.__translate_jumps(self.__parser.get_address())
         elif line_type == Parser.CALL_COMMAND_TYPE:
             return self.__translate_call()
         elif line_type == Parser.FUNCTION_COMMAND_TYPE:
@@ -500,7 +500,7 @@ class Translator:
         :param address_code: the address to access
         :return: the A command for accessing the given address code
         """
-        return A_PREFIX + address_code + END_OF_LINE_MARK
+        return A_PREFIX + str(address_code) + END_OF_LINE_MARK
 
     @staticmethod
     def __put_address_in_stack(address):
@@ -623,7 +623,7 @@ class Translator:
         translates function call vm command to hack command
         :return: the matching hack command
         """
-        return_address = RETURN_LABEL + self.__parser.get_function_call_number()
+        return_address = RETURN_LABEL + str(self.__parser.get_function_call_number())
         full_return_address = self.__create_full_label_name(return_address, LABEL_SEP)
         push_ret_address = Translator.__put_address_in_stack(full_return_address) + Translator.__increment_stack()
         push_LCL = Translator.__push_address_to_stack(LOCAL_KEYWORD)

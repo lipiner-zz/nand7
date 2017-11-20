@@ -96,7 +96,7 @@ class Parser:
             return LABEL_COMMAND_TYPE
         if RETURN_COMMAND_MARK in self.__cleared_command:
             return RETURN_COMMAND_TYPE
-        if CALL_COMMAND_TYPE in self.__cleared_command:
+        if CALL_COMMAND_MARK in self.__cleared_command:
             return CALL_COMMAND_TYPE
         if FUNCTION_COMMAND_MARK in self.__cleared_command:
             return FUNCTION_COMMAND_TYPE
