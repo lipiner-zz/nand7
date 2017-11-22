@@ -563,7 +563,7 @@ class Translator:
             Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_INCREMENTED_D
         stores_return_into_stack = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
             Translator.__get_A_instruction(LOCAL_KEYWORD) + SUBTRACTION_D_FROM_M_TO_A + \
-            Translator.__register_value_into_other_register(STACK)
+            GETTING_REGISTER_VALUE + Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
         restore_THAT = Translator.__restores_outer_function_segments(THAT_KEYWORD)
         restore_THIS = Translator.__restores_outer_function_segments(THIS_KEYWORD)
         restore_ARG = Translator.__restores_outer_function_segments(ARGUMENT_KEYWORD)
@@ -604,23 +604,17 @@ class Translator:
     @staticmethod
     def __restores_outer_function_segments(dest_register):
         """
-        :param dest_register: the register we want to restore its value
-        :return: the matching hack command
-        """
-        return Translator.__get_A_instruction(LOCAL_KEYWORD) + GO_TO_PREVIOUS_REGISTER_M + \
-               Translator.__register_value_into_other_register(dest_register)
-
-    @staticmethod
-    def __register_value_into_other_register(dest_register):
-        """
+        @LCL
+        AM=M-1
         D=M
         @dest_register
         A=M
         M=D
-        :param dest_register: the destination register address for the current memory value
-        :return: the machine hack commands for getting the current register value (M) into the dest register
+        :param dest_register: the register we want to restore its value
+        :return: the matching hack command
         """
-        return GETTING_REGISTER_VALUE + Translator.__get_A_instruction(dest_register) + UPDATE_MEMORY_TO_D
+        return Translator.__get_A_instruction(LOCAL_KEYWORD) + GO_TO_PREVIOUS_REGISTER_M + \
+               GETTING_REGISTER_VALUE + Translator.__get_A_instruction(dest_register) + UPDATE_MEMORY_TO_D
 
     def __translate_call(self):
         """
