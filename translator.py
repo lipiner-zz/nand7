@@ -423,7 +423,7 @@ class Translator:
             return Translator.__push_address_to_stack(POINTER_ADDRESS_TRANSLATOR[address])
         # pop pointer
         else:
-            return Translator.__reduce_stack() + Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + \
+            return Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
                    Translator.__get_A_instruction(POINTER_ADDRESS_TRANSLATOR[address]) + UPDATE_MEMORY_TO_D
 
     @staticmethod
@@ -435,6 +435,7 @@ class Translator:
         """
         return Translator.__get_A_instruction(address) + GETTING_REGISTER_VALUE + \
                Translator.__operate_on_stack(UPDATE_MEMORY_TO_D) + Translator.__increment_stack()
+
     @staticmethod
     def __get_local_address(segment, address):
         """
