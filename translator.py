@@ -646,7 +646,7 @@ class Translator:
         :param func_name: the pure function name
         :return: filename.funcname
         """
-        return self.__parser.get_file_name() + LABEL_FILENAME_SEPARATOR + func_name
+        return func_name #self.__parser.get_file_name() + LABEL_FILENAME_SEPARATOR + func_name
 
     def __translate_function_declaration(self):
         """
