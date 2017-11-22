@@ -85,4 +85,4 @@ if __name__ == '__main__':
     if os.path.isdir(path):
         translate_directory(path)  # translates all vm files in the directory
     else:
-        translate_file(path)  # translates the given vm file
+        translate_single_file(path)  # translates the given vm file

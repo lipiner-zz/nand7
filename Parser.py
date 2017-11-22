@@ -101,7 +101,7 @@ class Parser:
         if FUNCTION_COMMAND_MARK in self.__cleared_command:
             return FUNCTION_COMMAND_TYPE
         if IF_GOTO_COMMAND_MARK in self.__cleared_command:  # first search for if-goto and only then for goto
-            return IF_GOTO_COMMAND_MARK
+            return IF_GOTO_COMMAND_TYPE
         if GOTO_COMMAND_MARK in self.__cleared_command:
             return GOTO_COMMAND_TYPE
         return ARITHMETIC_COMMAND_TYPE
@@ -123,7 +123,7 @@ class Parser:
         elif self.__command_type == PUSH_COMMAND_TYPE or self.__command_type == POP_COMMAND_TYPE:
             self.__segment_label = command_parts[SEGMENT_LABEL_POS]
             self.__dest_address = command_parts[DEST_ADDRESS_POS]
-        elif self.__command_type == GOTO_COMMAND_TYPE or self.__command_type == IF_GOTO_COMMAND_MARK:
+        elif self.__command_type == GOTO_COMMAND_TYPE or self.__command_type == IF_GOTO_COMMAND_TYPE:
             self.__dest_address = command_parts[GOTO_ADDRESS_POS]
         elif self.__command_type == LABEL_COMMAND_TYPE:
             self.__segment_label = command_parts[SEGMENT_LABEL_POS]

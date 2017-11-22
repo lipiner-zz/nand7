@@ -79,6 +79,7 @@ END_LOOP_LABEL = "ENDLOOP"
 STACK_INITIAL_ADDRESS = 256
 SYS_INIT_VM_COMMAND = "call Sys.init 0"
 
+
 class Translator:
     """
     A translator class that translates an instruction in vm language to machine code. Has an internal Parser object
@@ -101,22 +102,24 @@ class Translator:
         line_type = self.__parser.get_type()
         # returns a comment of the full command for the understandability of the asm file
         line_comment = COMMENT_SIGN + self.__parser.get_command() + END_OF_LINE_MARK
+        trans = line_comment
         if line_type == Parser.ARITHMETIC_COMMAND_TYPE:
-            return line_comment + self.__translate_arithmetic()
+            trans += self.__translate_arithmetic()
         elif line_type == Parser.PUSH_COMMAND_TYPE or line_type == Parser.POP_COMMAND_TYPE:
-            return line_comment + self.__translate_push_pop()
+            trans += self.__translate_push_pop()
         elif line_type == Parser.LABEL_COMMAND_TYPE:
-            return self.__create_label(self.__parser.get_segment_label(), LABEL_SEP)
-        elif line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.LABEL_COMMAND_TYPE:
-                return Translator.__translate_jumps(self.__parser.get_address())
+            trans += self.__create_label(self.__parser.get_segment_label(), LABEL_SEP)
+        elif line_type == Parser.IF_GOTO_COMMAND_TYPE or line_type == Parser.GOTO_COMMAND_TYPE:
+            trans += self.__translate_jumps()
         elif line_type == Parser.CALL_COMMAND_TYPE:
-            return self.__translate_call()
+            trans += self.__translate_call()
         elif line_type == Parser.FUNCTION_COMMAND_TYPE:
-            return self.__translate_function_declaration()
+            trans += self.__translate_function_declaration()
         elif line_type == Parser.RETURN_COMMAND_TYPE:
-            return self.__translate_return()
+            trans += self.__translate_return()
         else:
             return EMPTY_COMMAND
+        return trans
 
     def __translate_arithmetic(self):
         """
@@ -149,8 +152,8 @@ class Translator:
         translate a jump (goto or if-goto) command to asm
         :return: the asm command matching the branching operation
         """
-        jump_label = self.__create_full_label_name(self.__parser.get_segment_label, LABEL_SEP)
-        if self.__parser.get_type == Parser.GOTO_COMMAND_TYPE:
+        jump_label = self.__create_full_label_name(self.__parser.get_address(), LABEL_SEP)
+        if self.__parser.get_type() == Parser.GOTO_COMMAND_TYPE:
             return Translator.__translate_goto(jump_label)
         else:  # if-goto command
             return Translator.__translate_if_goto(jump_label)
