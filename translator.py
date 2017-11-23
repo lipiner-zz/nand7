@@ -592,11 +592,13 @@ class Translator:
         Creates the asm commands for calling the sys.init file and initializing the stack.
         :return: the machine hack commands
         """
+        # update the command to be the sys init first command
         self.__parser.set_command(SYS_INIT_VM_COMMAND)
         self.__parser.parse()
+        # initialize the stack to its initial address value and call the sys init command
         trans = Translator.__get_A_instruction(STACK_INITIAL_ADDRESS) + GETTING_ADDRESS_VALUE + \
             Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_D + \
-                self.__translate_call()
+            self.__translate_call()
         return trans
 
     def __translate_label(self):
