@@ -545,7 +545,7 @@ class Translator:
         # if the label is created inside call command: adds the called function name
         if self.__parser.get_type() == Parser.CALL_COMMAND_TYPE:
             label_full_name += self.__parser.get_called_function_name()
-            # if the label is inside a function: adds the outer function name
+        # if the label is inside a function: adds the outer function name
         elif self.__parser.get_declared_function_name():
             label_full_name += self.__parser.get_declared_function_name()
         label_full_name += label_sep + label_name
@@ -566,19 +566,24 @@ class Translator:
         """
         :return: the machine hack commands for a vm return command
         """
+        # stores the return address into a temp register
         stores_return_into_temp = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
             Translator.__get_A_instruction(LOCAL_KEYWORD) + SUBTRACTION_D_FROM_M_TO_A + \
             GETTING_REGISTER_VALUE + Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D
+        # copies the return value into the argument address
         copies_return_val = Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
             Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
+        # clears the stack - set the stack address to be after the return value (after the argument address)
         clears_stack = Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GETTING_REGISTER_VALUE + \
             Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_INCREMENTED_D
+        # restores all the segments addresses
         restore_THAT = Translator.__restores_outer_function_segments(THAT_KEYWORD)
         restore_THIS = Translator.__restores_outer_function_segments(THIS_KEYWORD)
         restore_ARG = Translator.__restores_outer_function_segments(ARGUMENT_KEYWORD)
         restore_LCL = Translator.__restores_outer_function_segments(LOCAL_KEYWORD)
         jump_return = Translator.__get_A_instruction(ADDR_STORE_REGISTER) + GO_TO_REGISTER_M + JUMP_ALWAYS_OPERATION
 
+        # combines all together
         return stores_return_into_temp + copies_return_val + clears_stack + restore_THAT + restore_THIS + \
                restore_ARG + restore_LCL + jump_return
 
