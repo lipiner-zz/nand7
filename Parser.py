@@ -39,6 +39,8 @@ class Parser:
     """
     A Parser object to parse the command to its parts.
     """
+    __functions_calls = {}  # stores all the called functions and its call number
+
     def __init__(self, file_name):
         """
         Creates new object of a parser.
@@ -53,7 +55,7 @@ class Parser:
         self.__function_called_name = None  # the function name when calling a function
         self.__function_arg_var_num = None
         self.__file_name = file_name
-        self.__functions_calls = {}  # stores all the called functions and its call number
+        # self.__functions_calls = {}  # stores all the called functions and its call number
 
     def set_command(self, command):
         """
@@ -67,7 +69,6 @@ class Parser:
         self.__segment_label = None
         self.__dest_address = None
         self.__arithmetic_operation = None
-        self.__function_name = None
         self.__function_called_name = None
         self.__function_arg_var_num = None
 
@@ -137,8 +138,8 @@ class Parser:
         elif self.__command_type == FUNCTION_COMMAND_TYPE:
             self.__function_name = command_parts[FUNCTION_NAME_POS]
             self.__function_arg_var_num = command_parts[FUNCTION_ARGS_VARS_POS]
-        elif self.__command_type == RETURN_COMMAND_TYPE:
-            self.__function_name = None
+        # elif self.__command_type == RETURN_COMMAND_TYPE:
+        #     self.__function_name = None
 
     def get_operation(self):
         """

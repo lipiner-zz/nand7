@@ -78,6 +78,7 @@ LOOP_LABEL = "LOOP"
 END_LOOP_LABEL = "ENDLOOP"
 STACK_INITIAL_ADDRESS = 256
 SYS_INIT_VM_COMMAND = "call Sys.init 0"
+BOOTING_FILE_NAME = "Sys"
 
 
 class Translator:
@@ -252,11 +253,17 @@ class Translator:
         """
         stack_value = Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE)
         temp_register_address = Translator.__get_A_instruction(COMPARE_TEMP_REGISTER)
-        true_label_address = Translator.__get_A_instruction(TRUE_LABEL + str(self.__label_counter))
-        false_label_address = Translator.__get_A_instruction(FALSE_LABEL + str(self.__label_counter))
+        true_label_address = Translator.__get_A_instruction(self.__create_full_label_name(TRUE_LABEL +
+                                                                                          str(self.__label_counter),
+                                                                                          LABEL_ALTER_SEP))
+        false_label_address = Translator.__get_A_instruction(self.__create_full_label_name(FALSE_LABEL +
+                                                                                           str(self.__label_counter),
+                                                                                           LABEL_ALTER_SEP))
         # gets the top stack value into a temp register
         first_value_into_temp = stack_value + temp_register_address + UPDATE_MEMORY_TO_D
-        regular_minus_label_address = Translator.__get_A_instruction(REGULAR_MINUS_LABEL + str(self.__label_counter))
+        regular_minus_label_address = Translator.__get_A_instruction(self.__create_full_label_name(REGULAR_MINUS_LABEL +
+                                                                                                   str(self.__label_counter),
+                                                                                                   LABEL_ALTER_SEP))
         jump_if_not_negative = Translator.__jump_based_on_D(JUMP_NOT_NEGATIVE)
         second_value = Translator.__get_A_instruction(STACK) + GO_TO_PREVIOUS_REGISTER_M + GETTING_REGISTER_VALUE
         jump_if_not_positive = Translator.__jump_based_on_D(JUMP_NOT_POSITIVE)
@@ -277,7 +284,9 @@ class Translator:
         # the true and false labels - sets the stack value to the result of the comparison
         false_label_title = self.__create_label(FALSE_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
         false_label_content = Translator.__operate_on_stack(FALSE_INTO_MEMORY)
-        jump_next = Translator.__get_A_instruction(NEXT_COMMAND_LABEL + str(self.__label_counter)) + \
+        jump_next = Translator.__get_A_instruction(self.__create_full_label_name(NEXT_COMMAND_LABEL +
+                                                                                 str(self.__label_counter),
+                                                                                 LABEL_ALTER_SEP)) + \
                     JUMP_ALWAYS_OPERATION
         true_label_title = self.__create_label(TRUE_LABEL + str(self.__label_counter), LABEL_ALTER_SEP)
         true_label_content = Translator.__operate_on_stack(TRUE_INTO_MEMORY)
@@ -532,13 +541,13 @@ class Translator:
         :param label_sep: the separator between the label prefix and the pure label name
         :return: the full label name
         """
-        label_full_name = self.__parser.get_file_name()
+        label_full_name = ""
         # if the label is created inside call command: adds the called function name
         if self.__parser.get_type() == Parser.CALL_COMMAND_TYPE:
-            label_full_name += LABEL_FILENAME_SEPARATOR + self.__parser.get_called_function_name()
+            label_full_name += self.__parser.get_called_function_name()
             # if the label is inside a function: adds the outer function name
         elif self.__parser.get_declared_function_name():
-            label_full_name += LABEL_FILENAME_SEPARATOR + self.__parser.get_declared_function_name()
+            label_full_name += self.__parser.get_declared_function_name()
         label_full_name += label_sep + label_name
         return label_full_name
 
@@ -557,20 +566,20 @@ class Translator:
         """
         :return: the machine hack commands for a vm return command
         """
+        stores_return_into_temp = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
+            Translator.__get_A_instruction(LOCAL_KEYWORD) + SUBTRACTION_D_FROM_M_TO_A + \
+            GETTING_REGISTER_VALUE + Translator.__get_A_instruction(ADDR_STORE_REGISTER) + UPDATE_MEMORY_TO_D
         copies_return_val = Translator.__operate_on_top_stack_value(GETTING_REGISTER_VALUE) + \
             Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
         clears_stack = Translator.__get_A_instruction(ARGUMENT_KEYWORD) + GETTING_REGISTER_VALUE + \
             Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_INCREMENTED_D
-        stores_return_into_stack = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
-            Translator.__get_A_instruction(LOCAL_KEYWORD) + SUBTRACTION_D_FROM_M_TO_A + \
-            GETTING_REGISTER_VALUE + Translator.__get_A_instruction(STACK) + GO_TO_REGISTER_M + UPDATE_MEMORY_TO_D
         restore_THAT = Translator.__restores_outer_function_segments(THAT_KEYWORD)
         restore_THIS = Translator.__restores_outer_function_segments(THIS_KEYWORD)
         restore_ARG = Translator.__restores_outer_function_segments(ARGUMENT_KEYWORD)
         restore_LCL = Translator.__restores_outer_function_segments(LOCAL_KEYWORD)
-        jump_return = Translator.__operate_on_stack(GO_TO_REGISTER_M) + JUMP_ALWAYS_OPERATION
+        jump_return = Translator.__get_A_instruction(ADDR_STORE_REGISTER) + GO_TO_REGISTER_M + JUMP_ALWAYS_OPERATION
 
-        return copies_return_val + clears_stack + stores_return_into_stack + restore_THAT + restore_THIS + \
+        return stores_return_into_temp + copies_return_val + clears_stack + restore_THAT + restore_THIS + \
                restore_ARG + restore_LCL + jump_return
 
     def translate_booting(self):
@@ -582,7 +591,7 @@ class Translator:
         self.__parser.parse()
         trans = Translator.__get_A_instruction(STACK_INITIAL_ADDRESS) + GETTING_ADDRESS_VALUE + \
             Translator.__get_A_instruction(STACK) + UPDATE_MEMORY_TO_D + \
-            self.__translate_call()
+                self.__translate_call()
         return trans
 
     def __translate_label(self):
@@ -628,25 +637,17 @@ class Translator:
         push_ARG = Translator.__push_address_to_stack(ARGUMENT_KEYWORD)
         push_THIS = Translator.__push_address_to_stack(THIS_KEYWORD)
         push_THAT = Translator.__push_address_to_stack(THAT_KEYWORD)
-        repos_ARG = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS + 1) + GETTING_ADDRESS_VALUE + \
+        repos_ARG = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
                     Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + \
                     ADD_A_TO_D + Translator.__get_A_instruction(STACK) + SUBTRACTION_D_FROM_M_TO_D + \
                     Translator.__get_A_instruction(ARGUMENT_KEYWORD) + UPDATE_MEMORY_TO_D
         repos_LCL = Translator.__get_A_instruction(STACK) + GETTING_REGISTER_VALUE + \
                     Translator.__get_A_instruction(LOCAL_KEYWORD) + UPDATE_MEMORY_TO_D
-        jump_to_func = Translator.__translate_goto(self.__get_full_func_name(self.__parser.get_called_function_name()))
+        jump_to_func = Translator.__translate_goto(self.__parser.get_called_function_name())
         return_label = self.__create_label(return_address, LABEL_SEP)
 
-        return Translator.__increment_stack() + push_ret_address + push_LCL + push_ARG + push_THIS + push_THAT + \
+        return push_ret_address + push_LCL + push_ARG + push_THIS + push_THAT + \
                repos_ARG + repos_LCL + jump_to_func + return_label
-
-    def __get_full_func_name(self, func_name):
-        """
-        returns a full function name: filename.funcname
-        :param func_name: the pure function name
-        :return: filename.funcname
-        """
-        return func_name #self.__parser.get_file_name() + LABEL_FILENAME_SEPARATOR + func_name
 
     def __translate_function_declaration(self):
         """

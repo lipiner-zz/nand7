@@ -58,20 +58,22 @@ def translate_single_file(file_name):
             translate_file(input_file, file_name, output_file, False)
 
 
-def translate_directory(directory_name):
+def translate_directory(directory_full_path):
     """
     The function gets a directory name and translates all the vm files in it to one asm file with the name of the
     given directory.
-    :param directory_name: the name of the given directory
+    :param directory_full_path: the name of the given directory
     """
-    files_list = os.listdir(directory_name)  # list of all the files' name in the given directory
-    output_file_name = directory_name + "." + ASM_SUFFIX
+    files_list = os.listdir(directory_full_path)  # list of all the files' name in the given directory
+    directory_full_dirs = directory_full_path.split(os.path.sep)  # split the path to its directories and the file name
+    directory_name = directory_full_dirs[FILE_NAME_POSITION]  # gets the file name only
+    output_file_name = os.path.join(directory_full_path, directory_name + "." + ASM_SUFFIX)
     with open(output_file_name, WRITING_MODE) as output_file:
         file_counter = 0  # counts how many files have been translated in the directory
         for directory_file in files_list:
             if VM_SUFFIX == directory_file[-len(VM_SUFFIX):]:  # if the file is a vm file
                 file_counter += 1
-                vm_file_name = os.path.join(directory_name, directory_file)  # creates a full path of the file name
+                vm_file_name = os.path.join(directory_full_path, directory_file)  # creates a full path of the file name
                 with open(vm_file_name) as input_file:
                     translate_file(input_file, vm_file_name, output_file, file_counter == 1)
 
