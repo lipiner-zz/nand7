@@ -635,20 +635,27 @@ class Translator:
         translates function call vm command to hack command
         :return: the matching hack command
         """
+        # gets the call return label
         return_address = RETURN_LABEL + str(self.__parser.get_function_call_number())
         full_return_address = self.__create_full_label_name(return_address, LABEL_SEP)
+        # push return address to the stack
         push_ret_address = Translator.__put_address_in_stack(full_return_address) + Translator.__increment_stack()
+        # push the memory segments' values to the stack (for restoration later)
         push_LCL = Translator.__push_address_to_stack(LOCAL_KEYWORD)
         push_ARG = Translator.__push_address_to_stack(ARGUMENT_KEYWORD)
         push_THIS = Translator.__push_address_to_stack(THIS_KEYWORD)
         push_THAT = Translator.__push_address_to_stack(THAT_KEYWORD)
+        # reposition argument segment to the place in the stack where the arguments start
         repos_ARG = Translator.__get_A_instruction(DIST_TO_RET_ADDRESS) + GETTING_ADDRESS_VALUE + \
                     Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + \
                     ADD_A_TO_D + Translator.__get_A_instruction(STACK) + SUBTRACTION_D_FROM_M_TO_D + \
                     Translator.__get_A_instruction(ARGUMENT_KEYWORD) + UPDATE_MEMORY_TO_D
+        # reposition local segment to the beginning of the stack
         repos_LCL = Translator.__get_A_instruction(STACK) + GETTING_REGISTER_VALUE + \
                     Translator.__get_A_instruction(LOCAL_KEYWORD) + UPDATE_MEMORY_TO_D
+        # jumps to the function definition
         jump_to_func = Translator.__translate_goto(self.__parser.get_called_function_name())
+        # puts a return label
         return_label = self.__create_label(return_address, LABEL_SEP)
 
         return push_ret_address + push_LCL + push_ARG + push_THIS + push_THAT + \
@@ -659,7 +666,9 @@ class Translator:
         translates function declaration vm command to hack command
         :return: the matching hack command
         """
+        # puts a function label
         create_func_label = self.__create_label(EMPTY_COMMAND, EMPTY_COMMAND)
+        # push nArgs zeros to the stack to be used as local variables
         push_vars = Translator.__get_A_instruction(self.__parser.get_function_arg_var_num()) + GETTING_ADDRESS_VALUE + \
                     self.__create_label(LOOP_LABEL, LABEL_ALTER_SEP) + \
                     Translator.__get_A_instruction(self.__create_full_label_name(END_LOOP_LABEL, LABEL_ALTER_SEP)) + \
