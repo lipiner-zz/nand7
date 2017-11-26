@@ -55,7 +55,7 @@ def translate_single_file(file_name):
         # opening the output file in writing mode
         with open(output_file_name, WRITING_MODE) as output_file:
             # translating the file
-            translate_file(input_file, file_name, output_file, False)
+            translate_file(input_file, file_name, output_file, True)
 
 
 def translate_directory(directory_full_path):
