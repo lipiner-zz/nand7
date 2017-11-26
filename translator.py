@@ -261,9 +261,9 @@ class Translator:
                                                                                            LABEL_ALTER_SEP))
         # gets the top stack value into a temp register
         first_value_into_temp = stack_value + temp_register_address + UPDATE_MEMORY_TO_D
-        regular_minus_label_address = Translator.__get_A_instruction(self.__create_full_label_name(REGULAR_MINUS_LABEL +
-                                                                                                   str(self.__label_counter),
-                                                                                                   LABEL_ALTER_SEP))
+        regular_minus_label_address = \
+            Translator.__get_A_instruction(self.__create_full_label_name(REGULAR_MINUS_LABEL +
+                                                                         str(self.__label_counter), LABEL_ALTER_SEP))
         jump_if_not_negative = Translator.__jump_based_on_D(JUMP_NOT_NEGATIVE)
         second_value = Translator.__get_A_instruction(STACK) + GO_TO_PREVIOUS_REGISTER_M + GETTING_REGISTER_VALUE
         jump_if_not_positive = Translator.__jump_based_on_D(JUMP_NOT_POSITIVE)
